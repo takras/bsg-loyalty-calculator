@@ -1,0 +1,194 @@
+{
+  "ships": [
+    {
+      "id": "battlestar",
+      "name": "Battlestar",
+      "source": [
+        {
+          "type": "raider",
+          "min": 8,
+          "max": 8,
+          "effect": "damage"
+        },
+        {
+          "type": "basestar",
+          "min": 4,
+          "max": 8,
+          "effect": "damage"
+        }
+      ]
+    },
+    {
+      "id": "basestar",
+      "name": "Basestar",
+      "source": [
+        {
+          "type": "viper",
+          "min": 8,
+          "max": 8,
+          "effect": "damage"
+        },
+        {
+          "type": "assault",
+          "min": 7,
+          "max": 8,
+          "effect": "damage"
+        },
+        {
+          "type": "battlestar",
+          "min": 5,
+          "max": 8,
+          "effect": "damage"
+        }
+      ]
+    },
+    {
+      "id": "civilian",
+      "name": "Civilian Ship",
+      "source": [
+        {
+          "type": "any",
+          "min": 0,
+          "max": 0,
+          "effect": "auto"
+        }
+      ]
+    },
+    {
+      "id": "assault",
+      "name": "Assault Raptor",
+      "source": [
+        {
+          "type": "any",
+          "min": 7,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "vipervii",
+      "name": "Viper Mark VII",
+      "source": [
+        {
+          "type": "any",
+          "min": 6,
+          "max": 7,
+          "effect": "damage"
+        },
+        {
+          "type": "any",
+          "min": 8,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "viperii",
+      "name": "Viper Mark II",
+      "source": [
+        {
+          "type": "any",
+          "min": 5,
+          "max": 7,
+          "effect": "damage"
+        },
+        {
+          "type": "any",
+          "min": 8,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "human",
+      "name": "Detain a Human",
+      "source": [
+        {
+          "type": "any",
+          "min": 1,
+          "max": 3,
+          "effect": "detain"
+        },
+        {
+          "type": "any",
+          "min": 4,
+          "max": 7,
+          "effect": "medical"
+        }
+      ]
+    },
+    {
+      "id": "occupant",
+      "name": "Occupation Forces",
+      "source": [
+        {
+          "type": "any",
+          "min": 5,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "centurion",
+      "name": "Centurion",
+      "source": [
+        {
+          "type": "any",
+          "min": 7,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "heavy",
+      "name": "Heavy Raider",
+      "source": [
+        {
+          "type": "any",
+          "min": 7,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    },
+    {
+      "id": "raider",
+      "name": "Raider",
+      "source": [
+        {
+          "type": "any",
+          "min": 3,
+          "max": 8,
+          "effect": "destroy"
+        }
+      ]
+    }
+  ],
+  "effects": [
+    {
+      "id": "damage",
+      "name": "Damaged"
+    },
+    {
+      "id": "auto",
+      "name": "Automatically Destroyed"
+    },
+    {
+      "id": "destroy",
+      "name": "Destroyed"
+    },
+    {
+      "id": "detain",
+      "name": "Detention"
+    },
+    {
+      "id": "medical",
+      "name": "Medical Ctr"
+    }
+  ]
+}

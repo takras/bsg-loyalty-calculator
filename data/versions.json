@@ -1,0 +1,22 @@
+[
+  {
+    "id": "core",
+    "name": "Base Game",
+    "canToggle": false
+  },
+  {
+    "id": "pegasus",
+    "name": "Pegasus",
+    "canToggle": true
+  },
+  {
+    "id": "exodus",
+    "name": "Exodus",
+    "canToggle": true
+  },
+  {
+    "id": "daybreak",
+    "name": "Daybreak",
+    "canToggle": true
+  }
+]

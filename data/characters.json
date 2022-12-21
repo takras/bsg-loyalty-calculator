@@ -1,0 +1,220 @@
+[
+  {
+    "id": "william",
+    "firstName": "William",
+    "surName": "Adama",
+    "callsign": "",
+    "version": "core"
+  },
+  {
+    "id": "saul",
+    "firstName": "Saul",
+    "surName": "Tigh",
+    "callsign": "",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "helo",
+    "alternate": "helo-alt",
+    "firstName": "Karl",
+    "surName": "Agathon",
+    "callsign": "Helo",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "apollo",
+    "alternate": "apollo-alt",
+    "firstName": "Lee",
+    "surName": "Adama",
+    "callsign": "Apollo",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "starbuck",
+    "firstName": "Kara",
+    "surName": "Thrace",
+    "callsign": "Starbuck",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "boomer",
+    "firstName": "Sharon",
+    "surName": "Valerii",
+    "callsign": "Boomer",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "chief",
+    "firstName": "Galen",
+    "surName": "Tyrol",
+    "callsign": "",
+    "title": "Chief",
+    "version": "core"
+  },
+  {
+    "id": "tom",
+    "alternate": "tom-alt",
+    "firstName": "Tom",
+    "surName": "Zarek",
+    "callsign": "",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "gaius",
+    "alternate": "gaius-alt",
+    "firstName": "Gaius",
+    "surName": "Baltar",
+    "callsign": "",
+    "title": "",
+    "version": "core"
+  },
+  {
+    "id": "laura",
+    "firstName": "Laura",
+    "surName": "Roslyn",
+    "callsign": "",
+    "title": "",
+    "version": "core"
+  },
+
+  {
+    "id": "helena",
+    "firstName": "Helena",
+    "surName": "Cain",
+    "callsign": "",
+    "title": "",
+    "version": "pegasus"
+  },
+  {
+    "id": "dee",
+    "firstName": "Anastasia",
+    "surName": "Dualla",
+    "callsign": "Dee",
+    "title": "",
+    "version": "pegasus"
+  },
+  {
+    "id": "kat",
+    "firstName": "Louanne",
+    "surName": "Katraine",
+    "callsign": "Kat",
+    "title": "",
+    "version": "pegasus"
+  },
+  {
+    "id": "ellen",
+    "firstName": "Ellen",
+    "surName": "Tigh",
+    "callsign": "",
+    "title": "",
+    "version": "pegasus"
+  },
+
+  {
+    "id": "felix",
+    "firstName": "Felix",
+    "surName": "Gaeta",
+    "callsign": "",
+    "title": "",
+    "version": "exodus"
+  },
+  {
+    "id": "samuel",
+    "firstName": "Samuel",
+    "surName": "T. Anders",
+    "callsign": "",
+    "title": "",
+    "version": "exodus"
+  },
+  {
+    "id": "cally",
+    "firstName": "Callandra",
+    "surName": "Tyrol",
+    "callsign": "Cally",
+    "title": "",
+    "version": "exodus"
+  },
+  {
+    "id": "tory",
+    "firstName": "Tory",
+    "surName": "Foster",
+    "callsign": "",
+    "title": "",
+    "version": "exodus"
+  },
+
+  {
+    "id": "louis",
+    "firstName": "Louis",
+    "surName": "Hoshi",
+    "callsign": "",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "tom-alt",
+    "original": "tom",
+    "firstName": "Tom",
+    "surName": "Zarek",
+    "callsign": "",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "helo-alt",
+    "original": "helo",
+    "firstName": "Karl",
+    "surName": "Agathon",
+    "callsign": "Helo",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "hotdog",
+    "firstName": "Brenden",
+    "surName": "Costanza",
+    "callsign": "Hot Dog",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "doc",
+    "firstName": "Sherman",
+    "surName": "Cottle",
+    "callsign": "Doc",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "apollo-alt",
+    "original": "apollo",
+    "firstName": "Lee",
+    "surName": "Adama",
+    "callsign": "Apollo",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "gaius-alt",
+    "original": "gaius",
+    "firstName": "Gaius",
+    "surName": "Baltar",
+    "callsign": "",
+    "title": "",
+    "version": "daybreak"
+  },
+  {
+    "id": "romo",
+    "firstName": "Romo",
+    "surName": "Lampkin",
+    "callsign": "",
+    "title": "",
+    "version": "daybreak"
+  }
+]
