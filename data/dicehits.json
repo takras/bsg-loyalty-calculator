@@ -5,13 +5,13 @@
       "name": "Battlestar",
       "source": [
         {
-          "type": "raider",
+          "id": "raider",
           "min": 8,
           "max": 8,
           "effect": "damage"
         },
         {
-          "type": "basestar",
+          "id": "basestar",
           "min": 4,
           "max": 8,
           "effect": "damage"
@@ -23,19 +23,19 @@
       "name": "Basestar",
       "source": [
         {
-          "type": "viper",
+          "id": "viper",
           "min": 8,
           "max": 8,
           "effect": "damage"
         },
         {
-          "type": "assault",
+          "id": "assault",
           "min": 7,
           "max": 8,
           "effect": "damage"
         },
         {
-          "type": "battlestar",
+          "id": "battlestar",
           "min": 5,
           "max": 8,
           "effect": "damage"
@@ -47,7 +47,7 @@
       "name": "Civilian Ship",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 0,
           "max": 0,
           "effect": "auto"
@@ -59,7 +59,7 @@
       "name": "Assault Raptor",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 7,
           "max": 8,
           "effect": "destroy"
@@ -71,13 +71,13 @@
       "name": "Viper Mark VII",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 6,
           "max": 7,
           "effect": "damage"
         },
         {
-          "type": "any",
+          "id": "any",
           "min": 8,
           "max": 8,
           "effect": "destroy"
@@ -89,13 +89,13 @@
       "name": "Viper Mark II",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 5,
           "max": 7,
           "effect": "damage"
         },
         {
-          "type": "any",
+          "id": "any",
           "min": 8,
           "max": 8,
           "effect": "destroy"
@@ -107,13 +107,13 @@
       "name": "Detain a Human",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 1,
           "max": 3,
           "effect": "detain"
         },
         {
-          "type": "any",
+          "id": "any",
           "min": 4,
           "max": 7,
           "effect": "medical"
@@ -125,7 +125,7 @@
       "name": "Occupation Forces",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 5,
           "max": 8,
           "effect": "destroy"
@@ -137,7 +137,7 @@
       "name": "Centurion",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 7,
           "max": 8,
           "effect": "destroy"
@@ -149,7 +149,7 @@
       "name": "Heavy Raider",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 7,
           "max": 8,
           "effect": "destroy"
@@ -161,7 +161,7 @@
       "name": "Raider",
       "source": [
         {
-          "type": "any",
+          "id": "any",
           "min": 3,
           "max": 8,
           "effect": "destroy"

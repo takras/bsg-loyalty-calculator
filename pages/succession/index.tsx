@@ -1,16 +1,16 @@
-import styles from "../../styles/succession.module.css";
+import successions from "../../data/succession.json";
 import characters from "../../data/characters.json";
-import succession from "../../data/succession.json";
-import useToggleBoxes from "../../hooks/use-toggle-boxes";
+import { useContext } from "react";
+import SettingsContext from "../../settings/settings-provider";
 
-interface Props {
-  id: string;
-  name: string;
-  order: string[];
-}
+import styles from "../../styles/succession.module.css";
 
-export default function Succession({ id, name, order }: Props) {
-  const { Buttons, enabledBoxes } = useToggleBoxes();
+export default function SuccessionPage() {
+  const { enabledBoxes, selectedCategory } = useContext(SettingsContext);
+  const { name, order } = successions.find(
+    (succession) => succession.id === selectedCategory
+  );
+
   const activeCharacters = characters.filter((character) =>
     enabledBoxes.some((box) => box === character.version)
   );
@@ -47,11 +47,10 @@ export default function Succession({ id, name, order }: Props) {
 
   return (
     <>
-      <Buttons />
       <h2>{name}</h2>
       <ul>
         {order.map((id) => (
-          <Character id={id} />
+          <Character id={id} key={id} />
         ))}
       </ul>
     </>

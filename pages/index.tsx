@@ -1,26 +1,39 @@
 import Head from "next/head";
 import styles from "../styles/Home.module.css";
-import Succession from "./succession";
-import successions from "../data/succession.json";
+import SuccessionPage from "./succession";
+import { SettingsProvider } from "../settings/settings-provider";
+import useCategoryButtons from "../hooks/use-categories";
+import useExpansions from "../hooks/use-expansions";
+import DiceHitsPage from "./dice";
+import Link from "next/link";
 
 export default function Home() {
+  const { CategoryButtons, selectedCategory } = useCategoryButtons();
+  const { ExpansionButtons, enabledBoxes } = useExpansions();
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>Create Next App</title>
+        <title>Battlestar Galactica Boardgame Helper</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        {successions.map((succession) => (
-          <Succession
-            id={succession.id}
-            name={succession.name}
-            order={succession.order}
-            key={succession.id}
-          />
-        ))}
-      </main>
+      <nav>
+        <Link href="/succession">Succession</Link>
+        <Link href="/dice">Dice Hits</Link>
+      </nav>
+
+      <SettingsProvider value={{ selectedCategory, enabledBoxes }}>
+        <main>
+          <menu>
+            <CategoryButtons />
+            <ExpansionButtons />
+          </menu>
+
+          <SuccessionPage />
+          <DiceHitsPage />
+        </main>
+      </SettingsProvider>
 
       <footer>
         <a

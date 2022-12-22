@@ -1,0 +1,30 @@
+.sourceName {
+  color: red;
+}
+
+.targetName {
+  font-weight: bolder;
+  min-width: 10rem;
+}
+
+.target {
+  border: 1px solid black;
+}
+
+.range {
+  color: green;
+}
+
+.effect {
+  color: blue;
+}
+
+.diceHitsList {
+  list-style: none;
+  padding-left: 0;
+}
+
+.attacker {
+  display: grid;
+  grid-template-columns: 3fr 1fr 2fr;
+}
