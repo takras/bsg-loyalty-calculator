@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import successions from "../data/succession.json";
+import successions from "../pages/api/succession.json";
 import SettingsContext from "../settings/settings-provider";
 
 import styles from "../styles/Button.module.css";

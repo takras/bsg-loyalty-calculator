@@ -1,5 +1,5 @@
 import { useContext, useState } from "react";
-import versions from "../data/versions.json";
+import versions from "../pages/api/versions.json";
 import SettingsContext from "../settings/settings-provider";
 
 import styles from "../styles/Button.module.css";

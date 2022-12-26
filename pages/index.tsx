@@ -24,12 +24,11 @@ export default function Home() {
       </nav>
 
       <SettingsProvider value={{ selectedCategory, enabledBoxes }}>
+        <menu>
+          <CategoryButtons />
+          <ExpansionButtons />
+        </menu>
         <main>
-          <menu>
-            <CategoryButtons />
-            <ExpansionButtons />
-          </menu>
-
           <SuccessionPage />
           <DiceHitsPage />
         </main>

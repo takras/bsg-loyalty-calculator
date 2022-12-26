@@ -1,5 +1,5 @@
-import successions from "../../data/succession.json";
-import characters from "../../data/characters.json";
+import successions from "../api/succession.json";
+import characters from "../api/characters.json";
 import { useContext } from "react";
 import SettingsContext from "../../settings/settings-provider";
 

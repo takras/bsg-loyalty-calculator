@@ -1,10 +1,19 @@
 import React from "react";
-import dicehits from "../../data/dicehits.json";
+import dicehits from "../api/dicehits.json";
 
 import styles from "../../styles/DiceHits.module.css";
 
-type Ship = typeof dicehits.ships[number];
-type Attacker = typeof dicehits.ships[number]["source"][number];
+interface Ship {
+  id: string;
+  name: string;
+  source: Attacker[];
+}
+interface Attacker {
+  id: string;
+  min: number;
+  max: number;
+  effect: string;
+}
 
 export default function DiceHitsPage() {
   const Target = ({ ship: target }: { ship: Ship }) => {
