@@ -9,8 +9,7 @@
 /coverage
 
 # next.js
-/.next/
-/out/
+/dist/
 
 # production
 /build
@@ -28,3 +27,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# original game art and reference documents (large, copyrighted, not shipped).
+# The processed files the app uses live in src/assets/ and public/rulebook/images/.
+/assets/source/
+/assets/reference/
