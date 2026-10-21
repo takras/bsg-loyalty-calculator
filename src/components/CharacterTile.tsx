@@ -49,6 +49,7 @@ export function CharacterTile({
   disabled,
   warn,
   note,
+  faded,
   onClick,
 }: {
   c: Character;
@@ -58,12 +59,14 @@ export function CharacterTile({
   warn?: string;
   /** Neutral extra line, e.g. which expansion an out-of-play character comes from */
   note?: string;
+  /** Dimmed but still selectable, e.g. the other version of a character that's already chosen */
+  faded?: boolean;
   onClick?: () => void;
 }) {
   return (
     <button
       type="button"
-      className={`char-tile ${selected ? "selected" : ""} ${warn ? "warned" : ""}`}
+      className={`char-tile ${selected ? "selected" : ""} ${warn ? "warned" : ""} ${faded ? "faded" : ""}`}
       disabled={disabled}
       onClick={onClick}
       aria-pressed={selected}

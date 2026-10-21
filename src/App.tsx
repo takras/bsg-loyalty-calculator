@@ -74,7 +74,7 @@ export function App() {
           <button
             className="hud-btn danger"
             onClick={() => {
-              if (confirm("Start over? This clears expansions, characters, titles and the game log.")) {
+              if (confirm("Start over? This clears characters, titles and the game log. Game settings (expansions, modules, ending, variants) are kept.")) {
                 dispatch({ type: "reset" });
                 go("setup");
               }

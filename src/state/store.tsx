@@ -23,6 +23,8 @@ export interface State {
   /** Characters removed from the game (executed). Cannot be chosen again. */
   removed: string[];
   sleeperDone: boolean;
+  /** Seat of the player holding the Mutineer card (Daybreak). */
+  mutineer?: number;
   log: string[];
 }
 
@@ -45,7 +47,7 @@ export type Action =
   | { type: "backToSetup" }
   | { type: "setStatus"; seat: number; status: PlayerStatus }
   | { type: "giveTitle"; title: TitleId; seat: number }
-  | { type: "stripTitles"; seat: number; reason: string }
+  | { type: "setMutineer"; seat: number | null }
   | { type: "replaceCharacter"; seat: number; newId: string }
   | { type: "sleeper"; done: boolean }
   | { type: "reset" };
@@ -68,6 +70,21 @@ export const hasCylonLeader = (players: Player[]) =>
 
 const nameOf = (s: State, seat: number) =>
   characterById[s.players.find((p) => p.seat === seat)?.characterId ?? ""]?.short ?? "?";
+
+/** Hand all of a player's titles to the highest in line *not including* them (receiving the Mutineer). */
+function stripTitles(s: State, seat: number, reason: string): State {
+  const titles = { ...s.titles };
+  const log = [...s.log];
+  for (const t of Object.keys(titles) as TitleId[]) {
+    if (titles[t] !== seat) continue;
+    const next = computeHolder(t, s.players.filter((p) => p.seat !== seat), undefined);
+    if (next !== undefined) {
+      titles[t] = next;
+      log.push(`${TITLE_LABEL[t]}: ${nameOf(s, seat)} → ${nameOf(s, next)} (${reason})`);
+    }
+  }
+  return { ...s, titles, log };
+}
 
 /** Re-check every title after a status change; pass titles on when the holder is no longer eligible. */
 function settleTitles(s: State, reason: string): State {
@@ -103,7 +120,7 @@ function reducer(s: State, a: Action): State {
       const log = (Object.keys(titles) as TitleId[]).map(
         (t) => `${TITLE_LABEL[t]}: ${nameOf(s, titles[t]!)} (start of game)`,
       );
-      return { ...s, phase: "playing", titles, log, removed: [], sleeperDone: false };
+      return { ...s, phase: "playing", titles, log, removed: [], sleeperDone: false, mutineer: undefined };
     }
     case "backToSetup":
       return {
@@ -111,13 +128,18 @@ function reducer(s: State, a: Action): State {
         phase: "setup",
         titles: {},
         log: [],
+        mutineer: undefined,
         players: s.players.map((p) => ({ ...p, status: "human" as const })),
       };
     case "setStatus": {
       const players = s.players.map((p) => (p.seat === a.seat ? { ...p, status: a.status } : p));
       const label = { human: "left the Brig / human", brig: "sent to the Brig", cylon: "revealed as Cylon" }[a.status];
+      const log = [...s.log, `${nameOf(s, a.seat)} ${label}`];
+      // A Mutineer who reveals hands the card to a human player of their choice.
+      const handOff = a.status === "cylon" && s.mutineer === a.seat;
+      if (handOff) log.push(`${nameOf(s, a.seat)} must hand the Mutineer card to a human player`);
       return settleTitles(
-        { ...s, players, log: [...s.log, `${nameOf(s, a.seat)} ${label}`] },
+        { ...s, players, log, mutineer: handOff ? undefined : s.mutineer },
         `${nameOf(s, a.seat)} ${label}`,
       );
     }
@@ -127,19 +149,10 @@ function reducer(s: State, a: Action): State {
         titles: { ...s.titles, [a.title]: a.seat },
         log: [...s.log, `${TITLE_LABEL[a.title]} given to ${nameOf(s, a.seat)}`],
       };
-    case "stripTitles": {
-      // Mutineer: titles go to the highest in line *not including* this player.
-      const titles = { ...s.titles };
-      const log = [...s.log];
-      for (const t of Object.keys(titles) as TitleId[]) {
-        if (titles[t] !== a.seat) continue;
-        const next = computeHolder(t, s.players.filter((p) => p.seat !== a.seat), undefined);
-        if (next !== undefined) {
-          titles[t] = next;
-          log.push(`${TITLE_LABEL[t]}: ${nameOf(s, a.seat)} → ${nameOf(s, next)} (${a.reason})`);
-        }
-      }
-      return { ...s, titles, log };
+    case "setMutineer": {
+      if (a.seat === null) return { ...s, mutineer: undefined, log: [...s.log, "Mutineer cleared"] };
+      const received = { ...s, mutineer: a.seat, log: [...s.log, `${nameOf(s, a.seat)} received the Mutineer`] };
+      return stripTitles(received, a.seat, "received the Mutineer");
     }
     case "replaceCharacter": {
       const old = s.players.find((p) => p.seat === a.seat);
@@ -160,12 +173,15 @@ function reducer(s: State, a: Action): State {
           log.push(`${TITLE_LABEL[t]}: → ${characterById[players.find((p) => p.seat === next)!.characterId].short} (execution)`);
         }
       }
-      return { ...s, players, titles, removed: [...s.removed, old.characterId], log };
+      const updated = { ...s, players, titles, removed: [...s.removed, old.characterId], log };
+      // An executed Mutineer's new character receives the card again, as if just received.
+      return s.mutineer === a.seat ? stripTitles(updated, a.seat, "received the Mutineer") : updated;
     }
     case "sleeper":
       return { ...s, sleeperDone: a.done, log: [...s.log, a.done ? "Sleeper Agent phase done" : "Sleeper Agent phase undone"] };
     case "reset":
-      return initialState;
+      // Start a new game but keep the game settings (expansions, modules, ending, variants).
+      return { ...initialState, config: normalize(s.config, false) };
   }
 }
 

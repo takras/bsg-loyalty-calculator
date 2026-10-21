@@ -174,6 +174,8 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
                       selected={chosen}
                       disabled={locked}
                       warn={chosen ? flagged.get(c.id) : undefined}
+                      // only one version of a character may be chosen
+                      faded={!chosen && !!c.versionOf && chosenIds.includes(c.versionOf)}
                       note={isOutsideExpansion(config, c.box) ? `${BOX_LABEL[c.box]} character` : undefined}
                       onClick={() => toggleChar(c.id)}
                     />
