@@ -112,6 +112,12 @@ The scripts next to them turn these into the small files the app uses (committed
 | `node assets/raider-flat.mjs` | `assets/raider-flat.png` – that raider simplified to the crest's flat cream/olive style |
 | `npm run icons` | native app icons and splash screens (from `assets/emblem.mjs`, uses the flat raider) |
 
+## Store graphics
+
+`npm run build && node assets/store-graphics.mjs` renders the Google Play images into `store/google-play/`:
+six phone screenshots (1080×1920, captured from the real app in headless Chrome with a sample game) and the
+feature graphic (1024×500). All are 24-bit PNGs without transparency, as Play requires.
+
 ## Licences
 
 `npm run build` writes `dist/third-party-licenses.txt` with the full licence text of every package bundled

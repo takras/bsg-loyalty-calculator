@@ -10,7 +10,7 @@
     "cap:sync": "npm run build && cap sync",
     "android": "npm run cap:sync && cap open android",
     "ios": "npm run cap:sync && cap open ios",
-    "icons": "node assets/emblem.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#04070b\" --iconBackgroundColorDark \"#04070b\" --splashBackgroundColor \"#04070b\" --splashBackgroundColorDark \"#04070b\"",
+    "icons": "node assets/emblem.mjs && node assets/web-icons.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#04070b\" --iconBackgroundColorDark \"#04070b\" --splashBackgroundColor \"#04070b\" --splashBackgroundColorDark \"#04070b\"",
     "android:release": "npm run cap:sync && node scripts/gradle.mjs bundleRelease",
     "android:debug": "npm run cap:sync && node scripts/gradle.mjs assembleDebug"
   },
