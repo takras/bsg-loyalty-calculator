@@ -74,6 +74,12 @@ export const fontCredits: Credit[] = [
   { name: "VT323", detail: "By Peter Hull. Console-style labels.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/VT323" },
   { name: "Rajdhani", detail: "By Indian Type Foundry. Body text.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/Rajdhani" },
   { name: "Fontsource", detail: "Self-hosted font packages, so the app works offline.", license: "MIT", url: "https://fontsource.org" },
+  {
+    name: "SF Viper Squadron",
+    detail: "By Derek Vogelpohl, ShyFoundry. The app title, included as an image (the font itself isn't bundled).",
+    license: "ShyFoundry Freeware EULA",
+    url: "https://www.fontspace.com/sf-viper-squadron-font-f8289",
+  },
 ];
 
 export const originalCredits: Credit[] = [

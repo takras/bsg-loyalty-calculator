@@ -237,7 +237,14 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
   padding: 8px 12px 6px;
 }
 .hud-title { flex: 1; min-width: 0; }
-.hud-title h1 { font-size: 1.7rem; margin: 0; color: var(--text); letter-spacing: 0.12em; }
+.hud-title h1 { margin: 0; }
+/* The title is an image of SF Viper Squadron Solid (see assets/title-image.mjs), used as a mask so it takes the
+   theme's text colour. It scales to the space beside the header buttons, up to its full size. */
+.app-title {
+  display: block; width: 100%; max-width: 300px; aspect-ratio: 964 / 81; background: var(--text);
+  -webkit-mask: url("./assets/title.png") left center / contain no-repeat;
+  mask: url("./assets/title.png") left center / contain no-repeat;
+}
 .hud-status {
   font-size: 1.05rem; color: var(--label); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }

@@ -56,7 +56,9 @@ export function App() {
       <header className="hud-top">
         <div className="hud-bar">
           <div className="hud-title">
-            <h1>BSG Companion</h1>
+            <h1>
+              <span className="app-title" role="img" aria-label="BSG Companion" />
+            </h1>
             <div className="hud-status">
               {["BASE", ...boxes].join("+")} · {ENDING_LABEL[config.ending].toUpperCase()}
               {players.length > 0 && ` · P:${players.length}`} ·{" "}
