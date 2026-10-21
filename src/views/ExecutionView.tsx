@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Toggle } from "../components/Toggle";
 import { CharacterTile, Portrait } from "../components/CharacterTile";
+import { RowPortrait, useRowPortraitSize } from "../components/RowPortrait";
 import { characterById, characters } from "../data/characters";
 import { characterBoxes } from "../logic/config";
 import { TITLE_LABEL, type TitleId } from "../data/succession";
@@ -14,6 +15,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
   const [who, setWho] = useState<Who | null>(null);
   const [newId, setNewId] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  const pickPortrait = useRowPortraitSize();
 
   const player = players.find((p) => p.seat === seat);
   const char = player ? characterById[player.characterId] : undefined;
@@ -73,8 +75,8 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
                 const c = characterById[p.characterId];
                 return (
                   <button key={p.seat} className="pick" onClick={() => restart(p.seat)}>
-                    <Portrait c={c} size={40} />
-                    <span>{c.short}</span>
+                    <RowPortrait c={c} size={pickPortrait.size} onHeight={pickPortrait.onHeight(p.seat)} />
+                    <span className="pick-name">{c.short}</span>
                     {p.status !== "human" && <span className="badge warn">{p.status === "cylon" ? "Revealed Cylon" : "In Brig"}</span>}
                   </button>
                 );

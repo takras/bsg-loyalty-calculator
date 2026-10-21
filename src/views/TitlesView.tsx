@@ -1,7 +1,7 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { Toggle } from "../components/Toggle";
-import { Portrait } from "../components/CharacterTile";
-import { characterById, characters, displayName, TYPE_LABEL, type Character } from "../data/characters";
+import { RowPortrait, useRowPortraitSize } from "../components/RowPortrait";
+import { characterById, characters, displayName, TYPE_LABEL } from "../data/characters";
 import { characterBoxes } from "../logic/config";
 import { succession, TITLE_LABEL, type TitleId } from "../data/succession";
 import { canHoldTitle, initialTitles } from "../logic/succession";
@@ -15,8 +15,6 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
   const { players, titles, phase, config } = state;
   const [showAll, setShowAll] = useState(phase !== "playing" || players.length === 0);
   const portrait = useRowPortraitSize();
-  // One stable height callback per seat, so the rows' ResizeObservers aren't recreated on every render.
-  const onHeight = useMemo(() => Object.fromEntries(players.map((p) => [p.seat, portrait.report(p.seat)])), [players, portrait.report]);
   const titleIds: TitleId[] = config.cylonFleet ? ["admiral", "president", "cag"] : ["admiral", "president"];
   const boxes = characterBoxes(config);
   const inBoxes = new Set(characters.filter((c) => boxes.includes(c.box)).map((c) => c.id));
@@ -48,7 +46,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
               const leader = c.type === "cylonleader";
               return (
                 <li key={p.seat} className={`player status-${p.status}`}>
-                  <RowPortrait c={c} size={portrait.size} onHeight={onHeight[p.seat]} />
+                  <RowPortrait c={c} size={portrait.size} onHeight={portrait.onHeight(p.seat)} />
                   <div className="player-main">
                     <div className="player-name">
                       {c.name}
@@ -190,44 +188,4 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
       )}
     </div>
   );
-}
-
-/**
- * Player-row portrait: 40px wide normally, but when a row's controls wrap onto a second line the portraits grow to
- * the height of that row's text column (up to a limit), so they fill the row with the same top/bottom margin.
- * Every row reports its height and all portraits use the tallest, so rows without buttons (Cylon Leaders) match.
- */
-function RowPortrait({ c, size, onHeight }: { c: Character; size: number; onHeight: (h: number) => void }) {
-  const ref = useRef<HTMLSpanElement>(null);
-  useLayoutEffect(() => {
-    const main = ref.current?.nextElementSibling;
-    if (!main) return;
-    const measure = () => onHeight(main.getBoundingClientRect().height);
-    measure(); // before first paint, so the row doesn't flash at the small size
-    const ro = new ResizeObserver(measure);
-    ro.observe(main);
-    return () => ro.disconnect();
-  }, [onHeight]);
-  return (
-    <span ref={ref} className="row-portrait">
-      <Portrait c={c} size={size} />
-    </span>
-  );
-}
-
-/** Shared portrait width for the player rows, from the tallest row's text column. */
-function useRowPortraitSize() {
-  const heights = useRef(new Map<number, number>());
-  const [tallest, setTallest] = useState(0);
-  const report = useCallback(
-    (seat: number) => (h: number) => {
-      heights.current.set(seat, h);
-      setTallest(Math.max(0, ...heights.current.values()));
-    },
-    [],
-  );
-  // Standee art is 174×256. Capped at the height of a name plus two rows of buttons: on very narrow screens the
-  // name wraps too, and growing further would squeeze the buttons.
-  const size = Math.min(57, Math.max(40, Math.floor((tallest * 174) / 256)));
-  return { size, report };
 }
