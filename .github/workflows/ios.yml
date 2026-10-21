@@ -1,0 +1,254 @@
+# Builds the native iOS app on a GitHub-hosted macOS runner (adapted from legion-helper's ios.yml).
+#
+# Manual trigger only: macOS minutes bill at a 10x multiplier on private repos, so this deliberately
+# does not run on push.
+#
+# The device-unsigned and simulator targets need no Apple account at all. The testflight target signs
+# and uploads, and needs the four repository secrets listed in docs/ios-build.md. Signing assets are
+# created by Xcode itself through the App Store Connect API (-allowProvisioningUpdates), so no
+# certificate has to be exported from a Mac by hand.
+name: Build iOS app
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "What to build"
+        type: choice
+        default: device-unsigned
+        options:
+          - device-unsigned
+          - simulator
+          - testflight
+      build_number:
+        description: "Override the build number (blank = derived from the package.json version)"
+        type: string
+        required: false
+      revoke_old_certificates:
+        description: "testflight only: first revoke the signing certificates earlier runs left behind (needed once Apple reports the certificate limit)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Cache Swift packages
+        uses: actions/cache@v6
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/SourcePackages
+          key: ${{ runner.os }}-spm-${{ hashFiles('ios/App/CapApp-SPM/Package.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Apple rejects an upload built against an SDK older than iOS 26, and that is only visible at
+      # the very end of a run, so the SDK in use is logged here where it is cheap to read.
+      - name: Show Xcode and SDK version
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i iphoneos
+
+      # Builds the web app, copies it into the iOS project, and derives the versions from
+      # package.json: marketing 1.2.3, build number 10203 (same scheme as the Android versionCode).
+      - name: Build web assets and sync iOS project
+        id: native
+        run: |
+          npm run build
+          npx cap sync ios
+          node -e '
+            const v = require("./package.json").version;
+            const [a, b, c] = v.split(".").map((n) => parseInt(n, 10));
+            console.log(`marketing_version=${v}`);
+            console.log(`current_project_version=${a * 10000 + b * 100 + c}`);
+          ' >> "$GITHUB_OUTPUT"
+          cat "$GITHUB_OUTPUT"
+
+      # Capacitor 8 wires its plugins through Swift Package Manager, and Package.swift points at
+      # ../../../node_modules, so this must run after npm ci. Resolved as its own step to keep
+      # dependency failures distinct from compile failures.
+      - name: Resolve Swift package dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -project ios/App/App.xcodeproj \
+            -scheme App
+
+      - name: Build (unsigned, device)
+        if: inputs.target == 'device-unsigned'
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            MARKETING_VERSION=${{ steps.native.outputs.marketing_version }} \
+            CURRENT_PROJECT_VERSION=${{ steps.native.outputs.current_project_version }} \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGN_ENTITLEMENTS="" \
+            build
+
+      # Not a real .ipa: a signed one is produced by `xcodebuild -exportArchive` with a provisioning
+      # profile. This is the Payload/ zip layout, enough to inspect the bundle.
+      - name: Package unsigned .ipa
+        if: inputs.target == 'device-unsigned'
+        run: |
+          app="build/Build/Products/Release-iphoneos/App.app"
+          test -d "$app" || { echo "::error::$app not found"; exit 1; }
+          mkdir -p Payload
+          cp -R "$app" Payload/
+          zip -qry "BSGCompanion-${{ steps.native.outputs.marketing_version }}-unsigned.ipa" Payload
+          echo "Built: $(ls -lh *.ipa | awk '{print $9, $5}')"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist"
+
+      - name: Build (simulator)
+        if: inputs.target == 'simulator'
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -derivedDataPath build \
+            -destination 'generic/platform=iOS Simulator' \
+            MARKETING_VERSION=${{ steps.native.outputs.marketing_version }} \
+            CURRENT_PROJECT_VERSION=${{ steps.native.outputs.current_project_version }} \
+            build
+          cd build/Build/Products/Debug-iphonesimulator
+          zip -qry "$GITHUB_WORKSPACE/BSGCompanion-simulator.zip" App.app
+
+      # Written to the path altool looks in, which is also handed to xcodebuild as -authenticationKeyPath.
+      - name: Write App Store Connect API key
+        if: inputs.target == 'testflight'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          missing=
+          for name in KEY_ID ISSUER_ID TEAM_ID PRIVATE_KEY; do
+            [ -n "${!name}" ] || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing signing secret(s):$missing - see docs/ios-build.md"
+            exit 1
+          fi
+          mkdir -p ~/private_keys
+          echo "$PRIVATE_KEY" > ~/private_keys/AuthKey_$KEY_ID.p8
+          chmod 600 ~/private_keys/AuthKey_$KEY_ID.p8
+
+      # Every signed run leaves a "Created via API" certificate behind whose private key died with the
+      # runner; Apple caps how many an account can hold. Opt-in because it revokes certificates on the
+      # Apple account (shared with other apps on the same account, e.g. legion-helper).
+      - name: Revoke certificates left by earlier runs
+        if: inputs.target == 'testflight' && inputs.revoke_old_certificates
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: node scripts/revoke-api-certificates.mjs
+
+      # -allowProvisioningUpdates lets Xcode create and download the certificate and provisioning
+      # profile through the App Store Connect API, which is what makes signing possible with no Mac.
+      - name: Archive (signed)
+        if: inputs.target == 'testflight'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          build="${{ inputs.build_number || steps.native.outputs.current_project_version }}"
+          echo "Archiving ${{ steps.native.outputs.marketing_version }} build $build"
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -archivePath build/App.xcarchive \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_$KEY_ID.p8 \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic \
+            MARKETING_VERSION=${{ steps.native.outputs.marketing_version }} \
+            CURRENT_PROJECT_VERSION="$build" \
+            archive
+
+      # Generated rather than committed so the team id stays in secrets.
+      - name: Export signed .ipa
+        if: inputs.target == 'testflight'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > build/ExportOptions.plist <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store-connect</string>
+            <key>teamID</key>
+            <string>$TEAM_ID</string>
+            <key>uploadSymbols</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_$KEY_ID.p8 \
+            -authenticationKeyID "$KEY_ID" \
+            -authenticationKeyIssuerID "$ISSUER_ID"
+          ls -lh build/export
+          mv build/export/*.ipa "BSGCompanion-${{ steps.native.outputs.marketing_version }}.ipa"
+
+      - name: Upload to TestFlight
+        if: inputs.target == 'testflight'
+        env:
+          KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          xcrun altool --upload-app \
+            --type ios \
+            --file "BSGCompanion-${{ steps.native.outputs.marketing_version }}.ipa" \
+            --apiKey "$KEY_ID" \
+            --apiIssuer "$ISSUER_ID"
+          echo "Uploaded - App Store Connect takes a few minutes to process the build."
+
+      - name: Upload build
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-${{ inputs.target }}-${{ steps.native.outputs.marketing_version }}
+          path: |
+            *.ipa
+            *.zip
+          if-no-files-found: error
+          retention-days: 14

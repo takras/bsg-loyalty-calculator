@@ -66,8 +66,9 @@ npm run ios       # build web, sync, open Xcode (macOS only)
   - Use Play App Signing: Google holds the app signing key, you only keep the upload key. Back it up.
 - **Versions**: `versionName` = `package.json` version, `versionCode` = major·10000 + minor·100 + patch.
   Bump with `npm version patch` (or `minor`/`major`) before each store upload.
-- **iOS**: needs a Mac with Xcode. Uses Swift Package Manager (no CocoaPods). In Xcode set your
-  Team under Signing & Capabilities, then Product → Archive for App Store Connect.
+- **iOS**: built in the cloud by GitHub Actions (**Build iOS app**, manual): unsigned check, simulator
+  build, or a signed TestFlight upload – no Mac needed. See [docs/ios-build.md](docs/ios-build.md) for
+  the secrets and the one-time App Store Connect setup.
   Team under Signing & Capabilities, then Product → Archive for App Store Connect.
 - After changing web code, run `npm run cap:sync` (or the scripts above) before building natively.
 - Icons and splash screens: edit `assets/emblem.mjs` (or replace the PNGs in `assets/`) and run `npm run icons`.
