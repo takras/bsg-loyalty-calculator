@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   DISCLAIMER,
+  PRIVACY_URL,
   fontCredits,
   gameCredits,
   originalCredits,
@@ -67,6 +68,12 @@ export function Attributions() {
     <article className="card rule attributions" id="about">
       <Collapsible level={3} title="About & attributions">
         <p className="disclaimer">{DISCLAIMER}</p>
+        <p className="small">
+          <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">
+            Privacy policy
+          </a>{" "}
+          – the app collects no personal data; your game is only saved on this device.
+        </p>
         <CreditList title="The game" items={gameCredits} />
         <CreditList title="Rules sources" items={ruleCredits} />
         <CreditList title="Software" items={softwareCredits} />

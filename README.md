@@ -18,6 +18,16 @@ A pure client-side app: no server, no login. State is kept in the browser's loca
 - **Rulebook** – the full [unified BSG rulebook](https://jbiatek.github.io/BSGRulebook/rulebook.html),
   filtered to your setup and searchable.
 
+## Website
+
+Deployed to GitHub Pages at **https://bsg.takras.net/** by `.github/workflows/deploy-pages.yml` on every
+push to `main` (or manually from the Actions tab). The privacy policy is `public/privacy.html`
+→ https://bsg.takras.net/privacy.html (also linked from Rules → About & attributions), and the bundled
+licence texts are at `/third-party-licenses.txt`.
+
+One-time setup: repo **Settings → Pages → Source: GitHub Actions**, custom domain `bsg.takras.net`,
+then **Enforce HTTPS** once the certificate is issued; DNS: `CNAME bsg → takras.github.io`.
+
 ## Look & feel
 
 Mobile first, styled after the ship consoles in the show. Two themes, switched with the button in
@@ -44,8 +54,20 @@ npm run android   # build web, sync, open Android Studio
 npm run ios       # build web, sync, open Xcode (macOS only)
 ```
 
-- **Android**: needs Android Studio (SDK + JDK 21). Build → Generate Signed Bundle for Play Store.
+- **Android**: needs Android Studio (SDK + JDK 21). The `android:*` scripts run Gradle through
+  `scripts/gradle.mjs`, which uses Android Studio's bundled JDK and SDK unless `JAVA_HOME` /
+  `ANDROID_HOME` are set (some standalone JDKs on PATH reject `gradlew.bat`'s empty `-classpath`).
+  - Debug APK: `npm run android:debug` → `android/app/build/outputs/apk/debug/app-debug.apk`
+  - Play Store bundle: `npm run android:release` → `android/app/build/outputs/bundle/release/app-release.aab`
+  - The release is signed with your **upload key**, configured in `android/keystore.properties`
+    (copy `android/keystore.properties.example`; the file and any `*.jks` are git-ignored), or via the
+    `BSG_KEYSTORE_FILE`, `BSG_KEYSTORE_PASSWORD`, `BSG_KEY_ALIAS`, `BSG_KEY_PASSWORD` environment variables.
+    Without it the release build stops with an explanation.
+  - Use Play App Signing: Google holds the app signing key, you only keep the upload key. Back it up.
+- **Versions**: `versionName` = `package.json` version, `versionCode` = major·10000 + minor·100 + patch.
+  Bump with `npm version patch` (or `minor`/`major`) before each store upload.
 - **iOS**: needs a Mac with Xcode. Uses Swift Package Manager (no CocoaPods). In Xcode set your
+  Team under Signing & Capabilities, then Product → Archive for App Store Connect.
   Team under Signing & Capabilities, then Product → Archive for App Store Connect.
 - After changing web code, run `npm run cap:sync` (or the scripts above) before building natively.
 - Icons and splash screens: edit `assets/emblem.mjs` (or replace the PNGs in `assets/`) and run `npm run icons`.

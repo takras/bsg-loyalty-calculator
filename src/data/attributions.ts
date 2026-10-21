@@ -10,6 +10,10 @@ export interface Credit {
   url?: string;
 }
 
+/** Public website (GitHub Pages, custom domain). Absolute so native apps open it in the browser. */
+export const SITE_URL = "https://bsg.takras.net/";
+export const PRIVACY_URL = `${SITE_URL}privacy.html`;
+
 export const DISCLAIMER =
   "BSG Companion is an unofficial fan project. It is not affiliated with, endorsed or sponsored by Fantasy Flight Games, Universal or NBCUniversal.";
 

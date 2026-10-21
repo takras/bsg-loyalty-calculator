@@ -1,5 +1,24 @@
 apply plugin: 'com.android.application'
 
+import groovy.json.JsonSlurper
+
+// Version comes from the web project's package.json, so `npm version patch|minor|major` bumps both.
+// versionCode = major*10000 + minor*100 + patch (1.2.3 -> 10203); Google Play needs it to increase.
+def pkg = new JsonSlurper().parse(rootProject.file('../package.json'))
+def (vMajor, vMinor, vPatch) = pkg.version.tokenize('.').collect { it.replaceAll(/\D.*/, '') as int }
+def appVersionCode = vMajor * 10000 + vMinor * 100 + vPatch
+
+// Release signing (upload key). Read from android/keystore.properties (git-ignored) or, e.g. on CI,
+// from the environment: BSG_KEYSTORE_FILE, BSG_KEYSTORE_PASSWORD, BSG_KEY_ALIAS, BSG_KEY_PASSWORD.
+def keystoreProps = new Properties()
+def keystorePropsFile = rootProject.file('keystore.properties')
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+def signingValue = { String prop, String env -> keystoreProps.getProperty(prop) ?: System.getenv(env) }
+def releaseStoreFile = signingValue('storeFile', 'BSG_KEYSTORE_FILE')
+def hasReleaseSigning = releaseStoreFile && file(releaseStoreFile).exists()
+
 android {
     namespace = "net.takras.bsg"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +26,8 @@ android {
         applicationId "net.takras.bsg"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName pkg.version
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +35,23 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile file(releaseStoreFile)
+                storePassword signingValue('storePassword', 'BSG_KEYSTORE_PASSWORD')
+                keyAlias signingValue('keyAlias', 'BSG_KEY_ALIAS')
+                keyPassword signingValue('keyPassword', 'BSG_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasReleaseSigning) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
@@ -51,4 +83,13 @@ try {
     }
 } catch(Exception e) {
     logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+}
+
+// Refuse to produce an unsigned release (Play rejects it) instead of failing silently later.
+gradle.taskGraph.whenReady { graph ->
+    def wantsRelease = graph.allTasks.any { it.name in ['bundleRelease', 'assembleRelease'] }
+    if (wantsRelease && !hasReleaseSigning) {
+        throw new GradleException("Release signing is not configured: create android/keystore.properties " +
+            "(see android/keystore.properties.example) or set BSG_KEYSTORE_FILE and the related variables.")
+    }
 }

@@ -32,3 +32,8 @@ yarn-error.log*
 # The processed files the app uses live in src/assets/ and public/rulebook/images/.
 /assets/source/
 /assets/reference/
+
+# signing keys and their passwords must never be committed
+*.jks
+*.keystore
+keystore.properties
