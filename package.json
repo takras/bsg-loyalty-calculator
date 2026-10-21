@@ -1,7 +1,7 @@
 {
   "name": "bsg-companion",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,8 @@
     "ios": "npm run cap:sync && cap open ios",
     "icons": "node assets/emblem.mjs && node assets/web-icons.mjs && capacitor-assets generate --ios --android --iconBackgroundColor \"#04070b\" --iconBackgroundColorDark \"#04070b\" --splashBackgroundColor \"#04070b\" --splashBackgroundColorDark \"#04070b\"",
     "android:release": "npm run cap:sync && node scripts/gradle.mjs bundleRelease",
-    "android:debug": "npm run cap:sync && node scripts/gradle.mjs assembleDebug"
+    "android:debug": "npm run cap:sync && node scripts/gradle.mjs assembleDebug",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@capacitor/android": "8.5.2",

@@ -382,6 +382,8 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
   --c: 8px; --bw: 1px; --fill: var(--panel-2); --edge: var(--line);
   display: flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; font-weight: 600;
 }
+/* the narrow right padding leaves room for the ✕ button's own spacing; without it (game started) balance the sides */
+.seats li:not(:has(.seat-actions)) { padding: 6px 10px; }
 .seats li.flagged { --edge: var(--alert); }
 .seat-actions { display: flex; gap: 0; }
 .issues { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }

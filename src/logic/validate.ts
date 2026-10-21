@@ -1,5 +1,5 @@
-import { BOX_LABEL, characterById, type CharacterType } from "../data/characters";
-import { isOutsideExpansion, type Config } from "./config";
+import { characterById, type CharacterType } from "../data/characters";
+import type { Config } from "./config";
 
 export interface Issue {
   level: "error" | "warning";
@@ -65,17 +65,6 @@ export function validateLineup(ids: string[], config: Config): Issue[] {
       level: "warning",
       text: "No Sympathizer variant (4/6 players) normally excludes Boomer. You may ignore this; use the Sympathizer card as an extra “Not a Cylon”.",
       ids: ["boomer"],
-    });
-  }
-
-  // House rule: characters from expansions that aren't in play
-  const outside = chars.filter((c) => isOutsideExpansion(config, c.box));
-  if (outside.length) {
-    const boxes = [...new Set(outside.map((c) => BOX_LABEL[c.box]))].join(" and ");
-    issues.push({
-      level: "warning",
-      text: `${outside.map((c) => c.short).join(", ")} ${outside.length === 1 ? "is" : "are"} from ${boxes}, which isn't in play – some abilities may need that expansion's components.`,
-      ids: outside.map((c) => c.id),
     });
   }
 
