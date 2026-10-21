@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Toggle } from "../components/Toggle";
 import { Portrait } from "../components/CharacterTile";
-import { characterById, characters, displayName, TYPE_LABEL, type Box } from "../data/characters";
+import { characterById, characters, displayName, TYPE_LABEL } from "../data/characters";
+import { characterBoxes } from "../logic/config";
 import { succession, TITLE_LABEL, type TitleId } from "../data/succession";
 import { canHoldTitle, initialTitles } from "../logic/succession";
 import { useStore, type Player, type PlayerStatus } from "../state/store";
@@ -15,7 +16,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
   const { players, titles, phase, config } = state;
   const [showAll, setShowAll] = useState(phase !== "playing" || players.length === 0);
   const titleIds: TitleId[] = config.cylonFleet ? ["admiral", "president", "cag"] : ["admiral", "president"];
-  const boxes: Box[] = ["core", ...(["pegasus", "exodus", "daybreak"] as Box[]).filter((b) => config[b as "pegasus"])];
+  const boxes = characterBoxes(config);
   const inBoxes = new Set(characters.filter((c) => boxes.includes(c.box)).map((c) => c.id));
   const playerByChar = Object.fromEntries(players.map((p) => [p.characterId, p])) as Record<string, Player>;
 
@@ -40,7 +41,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
             })}
           </div>
           <ul className="player-list">
-            {players.map((p, i) => {
+            {players.map((p) => {
               const c = characterById[p.characterId];
               const leader = c.type === "cylonleader";
               return (
@@ -48,7 +49,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
                   <Portrait c={c} size={40} />
                   <div className="player-main">
                     <div className="player-name">
-                      <span className="seat-no">{i + 1}</span> {c.name}
+                      {c.name}
                       {c.version && <span className="ver"> ({TYPE_LABEL[c.type].split(" ")[0]})</span>}
                       {titlesOf(p.seat).map((t) => (
                         <span key={t} className={`badge title-${t}`} title={TITLE_LABEL[t]}>{TITLE_SHORT[t]}</span>

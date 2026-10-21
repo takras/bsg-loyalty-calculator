@@ -10,7 +10,7 @@ import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import sharp from "sharp";
 
-const OUT = "store/google-play";
+const OUT = "store/google-play"; // feature graphic
 const PORT = 4317;
 const DEBUG_PORT = 9333;
 const CHROME = [
@@ -91,6 +91,20 @@ const scenes = [
   },
 ];
 
+// ---------- stores and devices ----------
+// view = the CSS viewport the app is rendered at (× scale = capture pixels); W×H = the final image.
+const TARGETS = [
+  // Google Play phone: 360×640 @3 → 1080×1920
+  { prefix: "phone", out: "store/google-play", W: 1080, H: 1920, maxWidth: 0.8, device: "phone",
+    view: { w: 360, h: 640, scale: 3, mobile: true } },
+  // App Store iPhone 6.1"/6.3" slot: 1179×2556 (iPhone 393×852 @3)
+  { prefix: "iphone", out: "store/app-store/iphone-6.3", W: 1179, H: 2556, maxWidth: 0.8, device: "phone", jpeg: true,
+    view: { w: 393, h: 852, scale: 3, mobile: true } },
+  // App Store iPad 13" slot: 2048×2732 (iPad 1024×1366 @2 – the app's wide layout)
+  { prefix: "ipad", out: "store/app-store/ipad-13", W: 2048, H: 2732, maxWidth: 0.82, device: "tablet", jpeg: true,
+    view: { w: 1024, h: 1366, scale: 2, mobile: false } },
+];
+
 // ---------- headless Chrome over the DevTools protocol ----------
 const profile = mkdtempSync(join(tmpdir(), "bsg-store-"));
 const server = spawn(process.execPath, ["node_modules/vite/bin/vite.js", "preview", "--port", String(PORT), "--strictPort"], {
@@ -128,12 +142,15 @@ async function settle() {
     await Promise.race([Promise.all(pending), new Promise(r => setTimeout(r, 2500))]);`);
   await sleep(400);
 }
-async function shot(path, { width, height, scale }) {
+async function shot(path, { width, height, scale, jpeg = false }) {
   await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: scale > 1 });
   await sleep(150);
   const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   // Play wants 24-bit images without transparency
-  await sharp(Buffer.from(data, "base64")).flatten({ background: "#04070b" }).removeAlpha().png().toFile(path);
+  // Embedded sRGB profile: App Store Connect can refuse images without one ("Your file couldn't be saved").
+  const img = sharp(Buffer.from(data, "base64")).flatten({ background: "#04070b" }).removeAlpha().withMetadata({ icc: "srgb", density: 72 });
+  await img.clone().png({ compressionLevel: 9 }).toFile(path);
+  if (jpeg) await img.clone().jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true }).toFile(path.replace(/\.png$/, ".jpg"));
 }
 
 try {
@@ -152,24 +169,7 @@ try {
   await send("Page.enable");
   await send("Runtime.enable");
 
-  // 1. capture the app screens: a 360×640 phone at 3× → 1080×1920
-  const raw = join(profile, "raw");
-  mkdirSync(raw);
-  for (const s of scenes) {
-    await send("Emulation.setDeviceMetricsOverride", { width: 360, height: 640, deviceScaleFactor: 3, mobile: true });
-    await send("Page.navigate", { url: `http://localhost:${PORT}/` });
-    await sleep(600);
-    await evaluate(`localStorage.setItem('bsg-helper-state-v1', ${JSON.stringify(JSON.stringify(s.state))});
-      localStorage.setItem('bsg-theme', 'cic'); location.hash = '${s.route}';`);
-    await send("Page.reload");
-    await sleep(900);
-    await settle();
-    if (s.prepare) { await evaluate(s.prepare); await settle(); }
-    await shot(join(raw, `${s.id}.png`), { width: 360, height: 640, scale: 3 });
-    console.log("captured", s.id);
-  }
-
-  // 2. framed store screenshots, rendered from an HTML template with the app's own fonts
+  // Shared: the app's own fonts, the console backdrop, and the frame template (scales with the canvas).
   const font = (pkg, file) => fileUrl(`node_modules/@fontsource/${pkg}/files/${file}`);
   const fontsCss = `
     @font-face { font-family: VT323; src: url(${font("vt323", "vt323-latin-400-normal.woff2")}); }
@@ -182,30 +182,141 @@ try {
       #04070b;`;
   const tpl = join(profile, "tpl.html");
 
-  for (const s of scenes) {
-    writeFileSync(tpl, `<!doctype html><html><head><meta charset="utf-8"><style>${fontsCss}
+  /** Store screenshot: headline block on top, the app screen in a device frame below. */
+  const frameHtml = (t, s, imgUrl) => {
+    const k = t.W / 1080; // the design was made for 1080 px wide
+    const headerTop = 108 * k, headerH = 240 * k;
+    const areaTop = headerTop + headerH + 24 * k;
+    const avail = t.H - areaTop - 30 * k;
+    const aspect = t.view.w / t.view.h;
+    const fw = Math.min(t.W * t.maxWidth, avail * aspect);
+    const fh = fw / aspect;
+    const top = areaTop + (avail - fh) / 2;
+    const r = (t.device === "tablet" ? 34 : 54) * k;
+    return `<!doctype html><html><head><meta charset="utf-8"><style>${fontsCss}
       * { box-sizing: border-box; margin: 0; }
-      body { width: 1080px; height: 1920px; overflow: hidden; ${backdrop} font-family: Rajdhani, sans-serif; color: #e6eef7; }
-      .rail { position: absolute; left: 70px; right: 70px; top: 66px; height: 12px; background: #4f6d8f;
-              clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 12px 100%); }
-      header { position: absolute; top: 108px; left: 60px; right: 60px; height: 240px; display: flex;
-               flex-direction: column; justify-content: center; align-items: center; gap: 14px; text-align: center; }
-      h1 { font: 400 92px/1 VT323, monospace; letter-spacing: 0.06em; text-transform: uppercase; color: #e6eef7; }
-      p { font-weight: 600; font-size: 42px; line-height: 1.2; color: #b7cde4; }
-      .phone { position: absolute; top: 372px; left: 112px; width: 856px; height: 1522px; border-radius: 54px;
-               padding: 14px; background: #1a2430; box-shadow: 0 0 0 3px #4f6d8f, 0 30px 80px rgba(0,0,0,0.6), 0 0 90px rgba(134,169,207,0.18); }
-      .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 42px; display: block; }
+      body { width: ${t.W}px; height: ${t.H}px; overflow: hidden; position: relative; ${backdrop}
+             font-family: Rajdhani, sans-serif; color: #e6eef7; }
+      .rail { position: absolute; left: ${70 * k}px; right: ${70 * k}px; top: ${66 * k}px; height: ${12 * k}px; background: #4f6d8f;
+              clip-path: polygon(0 0, 100% 0, calc(100% - ${12 * k}px) 100%, ${12 * k}px 100%); }
+      header { position: absolute; top: ${headerTop}px; left: ${60 * k}px; right: ${60 * k}px; height: ${headerH}px; display: flex;
+               flex-direction: column; justify-content: center; align-items: center; gap: ${14 * k}px; text-align: center; }
+      h1 { font: 400 ${92 * k}px/1 VT323, monospace; letter-spacing: 0.06em; text-transform: uppercase; color: #e6eef7; }
+      p { font-weight: 600; font-size: ${42 * k}px; line-height: 1.2; color: #b7cde4; }
+      .device { position: absolute; top: ${top}px; left: ${(t.W - fw) / 2}px; width: ${fw}px; height: ${fh}px;
+                border-radius: ${r}px; padding: ${14 * k}px; background: #1a2430;
+                box-shadow: 0 0 0 ${3 * k}px #4f6d8f, 0 ${30 * k}px ${80 * k}px rgba(0,0,0,0.6), 0 0 ${90 * k}px rgba(134,169,207,0.18); }
+      .device img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: ${r - 12 * k}px; display: block; }
     </style></head><body>
       <div class="rail"></div>
       <header><h1>${s.title}</h1><p>${s.sub}</p></header>
-      <div class="phone"><img src="${fileUrl(join(raw, `${s.id}.png`))}"></div>
-    </body></html>`);
-    await send("Emulation.setDeviceMetricsOverride", { width: 1080, height: 1920, deviceScaleFactor: 1, mobile: false });
-    await send("Page.navigate", { url: fileUrl(tpl) });
-    await sleep(500);
-    await settle();
-    await shot(join(OUT, `phone-${s.id}.png`), { width: 1080, height: 1920, scale: 1 });
-    console.log("wrote", `${OUT}/phone-${s.id}.png`);
+      <div class="device"><img src="${imgUrl}"></div>
+    </body></html>`;
+  };
+
+  // 1+2. per store/device: capture the app at that device's size, then frame it with a headline
+  for (const t of TARGETS) {
+    mkdirSync(t.out, { recursive: true });
+    const raw = join(profile, `raw-${t.prefix}`);
+    mkdirSync(raw);
+    for (const s of scenes) {
+      await send("Emulation.setDeviceMetricsOverride", { width: t.view.w, height: t.view.h, deviceScaleFactor: t.view.scale, mobile: t.view.mobile });
+      await send("Page.navigate", { url: `http://localhost:${PORT}/` });
+      await sleep(600);
+      await evaluate(`localStorage.setItem('bsg-helper-state-v1', ${JSON.stringify(JSON.stringify(s.state))});
+        localStorage.setItem('bsg-theme', 'cic'); location.hash = '${s.route}';`);
+      await send("Page.reload");
+      await sleep(900);
+      await settle();
+      if (s.prepare) { await evaluate(s.prepare); await settle(); }
+      await shot(join(raw, `${s.id}.png`), { width: t.view.w, height: t.view.h, scale: t.view.scale });
+    }
+    console.log(`captured ${scenes.length} screens for ${t.prefix}`);
+
+    for (const s of scenes) {
+      writeFileSync(tpl, frameHtml(t, s, fileUrl(join(raw, `${s.id}.png`))));
+      await send("Emulation.setDeviceMetricsOverride", { width: t.W, height: t.H, deviceScaleFactor: 1, mobile: false });
+      await send("Page.navigate", { url: fileUrl(tpl) });
+      await sleep(500);
+      await settle();
+      await shot(join(t.out, `${t.prefix}-${s.id}.png`), { width: t.W, height: t.H, scale: 1, jpeg: t.jpeg });
+    }
+    console.log(`wrote ${scenes.length} screenshots to ${t.out}/ (${t.W}x${t.H})`);
+  }
+
+  // 2b. App Store creative assets (product page header, search results, 16:9), built from the iPhone captures.
+  // Specs: images without alpha; header 3840×1646 (21:9), search results 3840×2560 (3:2), 16:9 5244×2950 (PNG).
+  // Key content is kept centred so device-specific cropping can't cut it.
+  {
+    const out = "store/app-store/creative";
+    mkdirSync(out, { recursive: true });
+    const iphoneRaw = (id) => fileUrl(join(profile, "raw-iphone", `${id}.png`));
+    const crest = fileUrl("public/icon-512.png");
+    const page = (W, H, css, body) => `<!doctype html><html><head><meta charset="utf-8"><style>${fontsCss}
+      * { box-sizing: border-box; margin: 0; }
+      body { width: ${W}px; height: ${H}px; overflow: hidden; position: relative; font-family: Rajdhani, sans-serif; color: #e6eef7;
+             background:
+               radial-gradient(ellipse at 50% 45%, rgba(134,169,207,0.20), transparent 62%),
+               repeating-radial-gradient(circle at 50% 50%, transparent 0 ${H / 9}px, rgba(134,169,207,0.07) ${H / 9}px ${H / 9 + 3}px),
+               repeating-linear-gradient(to bottom, rgba(255,255,255,0.02) 0 2px, transparent 2px 7px),
+               #04070b; }
+      .phone { border-radius: 7.5% / 3.5%; padding: 1.4%; background: #1a2430; overflow: hidden;
+               box-shadow: 0 0 0 6px #4f6d8f, 0 40px 110px rgba(0,0,0,0.65), 0 0 140px rgba(134,169,207,0.18); }
+      .phone img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 6.5% / 3%; display: block; }
+      .rail { background: #4f6d8f; clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 14px 100%); }
+      ${css}</style></head><body>${body}</body></html>`;
+    const phone = (id, w) => `<div class="phone" style="width:${w}px;height:${(w * 852) / 393}px"><img src="${iphoneRaw(id)}"></div>`;
+
+    const creatives = [
+      {
+        // Product page header: one clear idea – the brand – centred.
+        file: "header-21x9-3840x1646.png", W: 3840, H: 1646,
+        html: page(3840, 1646, `
+          .wrap { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 130px; }
+          .crest { width: 980px; height: 980px; filter: drop-shadow(0 30px 70px rgba(0,0,0,0.7)); }
+          h1 { font: 400 250px/0.92 VT323, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+          .rail { height: 22px; width: 1250px; margin: 46px 0 40px; }
+          p { font-size: 92px; font-weight: 700; color: #b7cde4; }`,
+          `<div class="wrap"><img class="crest" src="${crest}"><div><h1>BSG<br>Companion</h1><div class="rail"></div>
+           <p>Your board game co-pilot</p></div></div>`),
+      },
+      {
+        // Search results: state the obvious – show the real interface.
+        file: "search-results-3x2-3840x2560.png", W: 3840, H: 2560,
+        html: page(3840, 2560, `
+          header { position: absolute; top: 120px; left: 0; right: 0; text-align: center; }
+          h1 { font: 400 190px/1 VT323, monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+          header p { margin-top: 26px; font-size: 84px; font-weight: 600; color: #b7cde4; }
+          .row { position: absolute; top: 560px; left: 0; right: 0; display: flex; justify-content: center; gap: 140px; }`,
+          `<header><h1>Rules, titles &amp; rolls</h1><p>The board game companion for your table</p></header>
+           <div class="row">${phone("02-titles", 880)}${phone("03-combat", 880)}${phone("04-crisis", 880)}</div>`),
+      },
+      {
+        // 16:9 version: brand on the left, the interface on the right.
+        file: "universal-16x9-5244x2950.png", W: 5244, H: 2950,
+        html: page(5244, 2950, `
+          .brand { position: absolute; left: 380px; top: 0; bottom: 0; width: 2050px; display: flex; flex-direction: column;
+                   justify-content: center; }
+          .crest { width: 1050px; height: 1050px; margin-bottom: 70px; filter: drop-shadow(0 30px 70px rgba(0,0,0,0.7)); }
+          h1 { font: 400 270px/0.92 VT323, monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+          .rail { height: 24px; width: 1600px; margin: 50px 0 44px; }
+          p { font-size: 100px; font-weight: 700; color: #b7cde4; }
+          .row { position: absolute; right: 380px; top: 200px; display: flex; gap: 130px; }`,
+          `<div class="brand"><img class="crest" src="${crest}"><h1>BSG<br>Companion</h1><div class="rail"></div>
+           <p>Your board game co-pilot</p></div>
+           <div class="row">${phone("02-titles", 1150)}${phone("03-combat", 1150)}</div>`),
+      },
+    ];
+
+    for (const c of creatives) {
+      writeFileSync(tpl, c.html);
+      await send("Emulation.setDeviceMetricsOverride", { width: c.W, height: c.H, deviceScaleFactor: 1, mobile: false });
+      await send("Page.navigate", { url: fileUrl(tpl) });
+      await sleep(800);
+      await settle();
+      await shot(join(out, c.file), { width: c.W, height: c.H, scale: 1 });
+      console.log("wrote", `${out}/${c.file}`);
+    }
   }
 
   // 3. feature graphic 1024×500

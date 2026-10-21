@@ -215,13 +215,15 @@ export function RulebookView() {
     <div className="view rulebook-view">
       <style>{hiddenCss}</style>
       <div className="rulebook-toolbar card">
-        <input
-          type="search"
-          placeholder="Search the rulebook… (e.g. Brig, Scar, Infiltrate)"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Search the rulebook"
-        />
+        <div className="search-field">
+          <input
+            type="search"
+            placeholder="Search the rulebook… (e.g. Brig, Scar, Infiltrate)"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            aria-label="Search the rulebook"
+          />
+        </div>
         <Toggle label="Official variants (1–2 players, co-op)" checked={showVariants} onChange={setShowVariants} on="Shown" off="Hidden" />
         <p className="small muted">
           Filtered to your Setup choices. Source:{" "}

@@ -30,13 +30,50 @@ function readPackage(root: string, name: string) {
   return { name, version: pkg.version as string, license: pkg.license as string, author, homepage: pkg.homepage as string, text };
 }
 
+function licenceText(root: string, names: Set<string>) {
+  const own = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).name;
+  const entries = [...names]
+    .filter((n) => n !== own)
+    .sort()
+    .map((n) => readPackage(root, n))
+    .filter((p): p is NonNullable<typeof p> => !!p);
+
+  const rule = "=".repeat(78);
+  const body = [
+    "BSG Companion – third-party software licences",
+    "",
+    "This app includes the following open-source software. Each package is listed with its",
+    "licence and the full licence text as published by its authors.",
+    "",
+    ...entries.flatMap((e) => [
+      rule,
+      `${e.name} ${e.version} – ${e.license}`,
+      ...(e.author ? [`Author: ${e.author}`] : []),
+      ...(e.homepage ? [`Homepage: ${e.homepage}`] : []),
+      rule,
+      "",
+      e.text ?? `Licence: ${e.license} (no licence file included in the package)`,
+      "",
+    ]),
+  ].join("\n");
+  return { body, missing: entries.filter((e) => !e.text).map((e) => e.name) };
+}
+
 export function thirdPartyLicenses(): Plugin {
   let root = process.cwd();
   return {
     name: "third-party-licenses",
-    apply: "build",
     configResolved(config) {
       root = config.root;
+    },
+    // The dev server has no bundle to inspect, so it serves the licences of the runtime dependencies instead.
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (!req.url?.split("?")[0].endsWith("/third-party-licenses.txt")) return next();
+        const deps = Object.keys(JSON.parse(readFileSync(join(root, "package.json"), "utf8")).dependencies ?? {});
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end(licenceText(root, new Set([...deps, ...NATIVE_PACKAGES])).body);
+      });
     },
     generateBundle() {
       const names = new Set<string>(NATIVE_PACKAGES);
@@ -44,35 +81,8 @@ export function thirdPartyLicenses(): Plugin {
         const name = packageOf(id);
         if (name) names.add(name);
       }
-      const own = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).name;
-      const entries = [...names]
-        .filter((n) => n !== own)
-        .sort()
-        .map((n) => readPackage(root, n))
-        .filter((p): p is NonNullable<typeof p> => !!p);
-
-      const missing = entries.filter((e) => !e.text).map((e) => e.name);
+      const { body, missing } = licenceText(root, names);
       if (missing.length) this.warn(`No licence file found for: ${missing.join(", ")}`);
-
-      const rule = "=".repeat(78);
-      const body = [
-        "BSG Companion – third-party software licences",
-        "",
-        "This app includes the following open-source software. Each package is listed with its",
-        "licence and the full licence text as published by its authors.",
-        "",
-        ...entries.flatMap((e) => [
-          rule,
-          `${e.name} ${e.version} – ${e.license}`,
-          ...(e.author ? [`Author: ${e.author}`] : []),
-          ...(e.homepage ? [`Homepage: ${e.homepage}`] : []),
-          rule,
-          "",
-          e.text ?? `Licence: ${e.license} (no licence file included in the package)`,
-          "",
-        ]),
-      ].join("\n");
-
       this.emitFile({ type: "asset", fileName: "third-party-licenses.txt", source: body });
     },
   };

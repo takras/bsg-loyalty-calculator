@@ -36,7 +36,7 @@ function CreditList({ title, items }: { title: string; items: Credit[] }) {
   );
 }
 
-/** Full licence texts, generated at build time into third-party-licenses.txt (see licenses-plugin.ts). */
+/** Full licence texts from third-party-licenses.txt (generated at build time, served live in dev; see licenses-plugin.ts). */
 function LicenceTexts() {
   const [text, setText] = useState<string | null>(null);
   const [state, setState] = useState<"idle" | "loading" | "error">("idle");
@@ -44,7 +44,8 @@ function LicenceTexts() {
     setState("loading");
     try {
       const res = await fetch(`${import.meta.env.BASE_URL}third-party-licenses.txt`);
-      if (!res.ok) throw new Error(String(res.status));
+      // A missing file can come back as the app's index.html from an SPA fallback, so check the type too.
+      if (!res.ok || !res.headers.get("content-type")?.startsWith("text/plain")) throw new Error(String(res.status));
       setText(await res.text());
       setState("idle");
     } catch {
@@ -57,7 +58,7 @@ function LicenceTexts() {
       <button className="xs" onClick={load} disabled={state === "loading"}>
         {state === "loading" ? "Loading…" : "Show full licence texts"}
       </button>
-      {state === "error" && <span className="muted"> Only available in a production build.</span>}
+      {state === "error" && <span className="muted"> Couldn't load the licence texts.</span>}
     </p>
   );
 }

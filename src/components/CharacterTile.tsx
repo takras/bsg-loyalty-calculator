@@ -48,16 +48,17 @@ export function CharacterTile({
   selected,
   disabled,
   warn,
+  note,
   onClick,
-  order,
 }: {
   c: Character;
   selected?: boolean;
   disabled?: boolean;
   /** Shown under the tile, e.g. a rule this pick conflicts with */
   warn?: string;
+  /** Neutral extra line, e.g. which expansion an out-of-play character comes from */
+  note?: string;
   onClick?: () => void;
-  order?: number;
 }) {
   return (
     <button
@@ -68,12 +69,12 @@ export function CharacterTile({
       aria-pressed={selected}
       aria-label={`${c.name}, ${TYPE_LABEL[c.type]}${c.version ? `, ${c.version} version` : ""}`}
     >
-      {order !== undefined && <span className="seat-badge">{order}</span>}
       <Portrait c={c} size={96} label />
       <span className={`char-type type-${c.type}`}>
         {TYPE_LABEL[c.type].replace(" Leader", "")}
         {c.version && <em> · {c.version === "original" ? "Orig." : "Alt."}</em>}
       </span>
+      {note && <span className="char-note">{note}</span>}
       {warn && <span className="char-reason">{warn}</span>}
     </button>
   );

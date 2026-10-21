@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { NavIcon } from "./components/NavIcon";
 import { ENDING_LABEL } from "./logic/config";
-import { useTheme } from "./state/theme";
+import { nextTheme, THEME_LABEL, useTheme } from "./state/theme";
 import { useStore } from "./state/store";
 import { CombatView } from "./views/CombatView";
 import { CrisisView } from "./views/CrisisView";
@@ -66,10 +66,10 @@ export function App() {
           <button
             className="hud-btn"
             onClick={toggleTheme}
-            aria-label={`Switch to ${theme === "cic" ? "Colonial" : "CIC"} theme`}
+            aria-label={`${THEME_LABEL[theme].name} theme – switch to ${THEME_LABEL[nextTheme(theme)].name}`}
             title="Switch console theme"
           >
-            {theme === "cic" ? "CIC" : "COL"}
+            {THEME_LABEL[theme].short}
           </button>
           <button
             className="hud-btn danger"

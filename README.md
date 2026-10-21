@@ -115,9 +115,19 @@ The scripts next to them turn these into the small files the app uses (committed
 
 ## Store graphics
 
-`npm run build && node assets/store-graphics.mjs` renders the Google Play images into `store/google-play/`:
-six phone screenshots (1080×1920, captured from the real app in headless Chrome with a sample game) and the
-feature graphic (1024×500). All are 24-bit PNGs without transparency, as Play requires.
+`npm run build && node assets/store-graphics.mjs` captures the real app in headless Chrome with a sample
+game and renders the store images (24-bit PNG, no transparency):
+
+| Folder | Contents |
+| --- | --- |
+| `store/google-play/` | six phone screenshots (1080×1920) and the feature graphic (1024×500) |
+| `store/app-store/iphone-6.3/` | six iPhone 6.1"/6.3" screenshots (1179×2556) |
+| `store/app-store/ipad-13/` | six iPad 13" screenshots (2048×2732) |
+| `store/app-store/creative/` | App Store product page header (3840×1646), search results (3840×2560), 16:9 (5244×2950) |
+
+The App Store text (subtitle, promo text, description, keywords, URLs, review notes) is in
+`store/app-store/listing.md`; `node store/check-listing.mjs` checks it against Apple's limits. The support
+page is `public/support.html` → https://bsg.takras.net/support.html.
 
 ## Licences
 

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Toggle } from "../components/Toggle";
 import { CharacterTile, Portrait } from "../components/CharacterTile";
-import { characterById, characters, type Box } from "../data/characters";
+import { characterById, characters } from "../data/characters";
+import { characterBoxes } from "../logic/config";
 import { TITLE_LABEL, type TitleId } from "../data/succession";
 import { useStore } from "../state/store";
 
@@ -88,7 +89,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
   const autoWho: Who | null = isLeader || player.status === "cylon" ? "revealed" : who;
 
   // Characters a human may pick after execution.
-  const boxes: Box[] = ["core", ...(["pegasus", "exodus", "daybreak"] as Box[]).filter((b) => config[b as "pegasus"])];
+  const boxes = characterBoxes(config);
   const inPlay = players.map((p) => p.characterId);
   const available = characters.filter(
     (c) =>

@@ -16,7 +16,7 @@ export interface Player {
 export interface State {
   version: 1;
   config: Config;
-  /** Seat order = character choice order. First entry is the first player. */
+  /** Players in the order their characters were picked. `seat` is just a stable id; the app doesn't track seating. */
   players: Player[];
   phase: "setup" | "playing";
   titles: Partial<Record<TitleId, number>>; // seat of the holder
@@ -41,7 +41,6 @@ export type Action =
   | { type: "config"; patch: Partial<Config> }
   | { type: "addCharacter"; id: string }
   | { type: "removeSeat"; seat: number }
-  | { type: "moveSeat"; seat: number; dir: -1 | 1 }
   | { type: "startGame" }
   | { type: "backToSetup" }
   | { type: "setStatus"; seat: number; status: PlayerStatus }
@@ -98,14 +97,6 @@ function reducer(s: State, a: Action): State {
     case "removeSeat": {
       const players = s.players.filter((p) => p.seat !== a.seat);
       return { ...s, players, config: normalize(s.config, hasCylonLeader(players)) };
-    }
-    case "moveSeat": {
-      const i = s.players.findIndex((p) => p.seat === a.seat);
-      const j = i + a.dir;
-      if (i < 0 || j < 0 || j >= s.players.length) return s;
-      const players = [...s.players];
-      [players[i], players[j]] = [players[j], players[i]];
-      return { ...s, players };
     }
     case "startGame": {
       const titles = initialTitles(s.players, s.config.cylonFleet);

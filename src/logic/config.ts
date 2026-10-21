@@ -1,3 +1,5 @@
+import type { Box } from "../data/characters";
+
 // Game configuration and the derived rule flags.
 // The derivation mirrors validateForm()/flipSwitches() in BSGRulebook/rulebook.md so the
 // helper and the embedded rulebook always agree on which rules are in effect.
@@ -29,6 +31,10 @@ export interface Config {
   forceOverlay: boolean;
   allySeasons: boolean;
   forceDemetrius: boolean;
+  /** House rule: offer characters from expansions that aren't in play. */
+  allowAllCharacters: boolean;
+  /** House rule: Political / Military / Pilot don't have to be chosen evenly. */
+  ignoreTypeBalance: boolean;
 }
 
 export const defaultConfig: Config = {
@@ -47,7 +53,18 @@ export const defaultConfig: Config = {
   forceOverlay: false,
   allySeasons: false,
   forceDemetrius: false,
+  allowAllCharacters: false,
+  ignoreTypeBalance: false,
 };
+
+/** Boxes whose characters can be chosen: the base game plus enabled expansions, or every box with the house rule. */
+export function characterBoxes(c: Config): Box[] {
+  if (c.allowAllCharacters) return ["core", "pegasus", "exodus", "daybreak"];
+  return ["core", ...(["pegasus", "exodus", "daybreak"] as const).filter((b) => c[b])];
+}
+
+/** True when a character's box isn't one of the expansions in play. */
+export const isOutsideExpansion = (c: Config, box: Box) => box !== "core" && !c[box];
 
 /** Which options are currently selectable. */
 export function allowed(c: Config, cylonLeader: boolean) {
