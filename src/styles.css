@@ -1,10 +1,3 @@
-/* Per-element shape settings. Registered so they don't inherit: a panel's large cut must not leak
-   into the buttons inside it. */
-@property --c { syntax: "<length>"; inherits: false; initial-value: 6px; }
-@property --bw { syntax: "<length>"; inherits: false; initial-value: 1.5px; }
-@property --fill { syntax: "<color>"; inherits: false; initial-value: transparent; }
-@property --edge { syntax: "<color>"; inherits: false; initial-value: transparent; }
-
 /* BSG Companion – styled after the ship consoles in the show.
    Three themes: "cic" (steel blue, Galactica CIC), "colonial" (amber, Colonial computer) and
    "caprica" (light, civilian daylight).
@@ -163,7 +156,17 @@ img { max-width: 100%; height: auto; }
 /* ---------- cut corners ----------
    Everything boxy gets 45° cut corners, like the game's character sheets. --c sets the cut size.
    Outlined ("framed") elements paint --edge as their background and lay --fill on top through ::before,
-   inset by --bw, so the outline follows the diagonals too (a CSS border would be clipped away there). */
+   inset by --bw, so the outline follows the diagonals too (a CSS border would be clipped away there).
+   Every shaped element first resets --c/--bw/--fill/--edge to defaults (zero specificity, so any element rule
+   wins), so a panel's settings never leak into the buttons inside it, while its own ::before still inherits them.
+   (Registering them as non-inheriting with @property and pulling them into ::before with `inherit` broke in
+   WebKit: pseudo-elements picked up a neighbouring element's values.) */
+:where(.card, .framed, button:not(.link, .ship-row, .hit-btn), .badge, .seats li, .crisis-icon, .search-field,
+.sys-toggle .pill, .issue-tag, .portrait:not(.has-img), .die-cell, .no-roll, .callout, .issues li, .title-chip,
+.hs-item, .player, .fallback, .mode-pill, .licence-texts, .reckless-steps li.hl, .dock a, .rulebook-toc li,
+.rulebook mark.hit, .subtabs a) {
+  --c: 6px; --bw: 1.5px; --fill: transparent; --edge: transparent;
+}
 .card, .framed, button:not(.link, .ship-row, .hit-btn), .badge, .seats li, .crisis-icon, .search-field,
 .sys-toggle .pill, .issue-tag, .portrait:not(.has-img), .die-cell, .no-roll, .callout,
 .issues li, .title-chip, .hs-item, .player, .fallback, .mode-pill, .licence-texts, .reckless-steps li.hl,
@@ -178,7 +181,6 @@ img { max-width: 100%; height: auto; }
 .card::before, .framed::before, .title-chip::before, .player::before, .hs-item::before, .callout::before, .issues li::before,
 .fallback::before, .mode-pill::before, button:not(.link, .ship-row, .hit-btn)::before, .badge::before, .seats li::before,
 .crisis-icon::before, .search-field::before {
-  --c: inherit; --bw: inherit; --fill: inherit; /* registered as non-inheriting, so pull them from the host explicitly */
   content: ""; position: absolute; inset: var(--bw); z-index: -1; pointer-events: none; background: var(--fill);
   clip-path: polygon(
     max(0px, calc(var(--c) - var(--bw) * 0.5858)) 0, calc(100% - max(0px, calc(var(--c) - var(--bw) * 0.5858))) 0,
@@ -427,7 +429,6 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
    read its width in cqw): ::after is the edge, ::before the fill. */
 button.char-tile { container-type: inline-size; clip-path: none; background: none; }
 button.char-tile::before, button.char-tile::after {
-  --c: inherit; --bw: inherit; --fill: inherit; --edge: inherit;
   /* portrait width (4px side padding, max 120px), then its cut plus ~30% of the gaps beside and above it */
   --pw: min(100cqw - 8px, 120px);
   --top-cut: calc(var(--pw) * 0.155 + 0.293 * ((100cqw - var(--pw)) / 2 + 8px));

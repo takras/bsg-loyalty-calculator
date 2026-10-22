@@ -9,6 +9,9 @@ import { useStore } from "../state/store";
 
 type Who = "human" | "hidden" | "revealed";
 
+// New characters whose setup depends on whether the Sleeper Agent phase has happened.
+const SLEEPER_SENSITIVE = ["boomer", "gaius"];
+
 export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) => void }) {
   const { state, dispatch, flags } = useStore();
   const { players, config, titles, removed, sleeperDone } = state;
@@ -21,6 +24,12 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
   const char = player ? characterById[player.characterId] : undefined;
   const isLeader = char?.type === "cylonleader";
   const heldTitles = player ? (Object.keys(titles) as TitleId[]).filter((t) => titles[t] === player.seat) : [];
+  // The Sleeper Agent phase only matters if the executed character was Boomer or the new one is Boomer/Baltar,
+  // so the switch is only shown then, next to the instructions it changes.
+  const executedBoomer = player?.characterId === "boomer";
+  const sleeperToggle = (
+    <Toggle label="Sleeper Agent phase has happened" checked={sleeperDone} onChange={(v) => dispatch({ type: "sleeper", done: v })} on="Yes" off="No" />
+  );
   const resurrection =
     config.ending === "newcaprica"
       ? "the Resurrection Ship (or the Medical Center during the New Caprica phase before Galactica returns)"
@@ -201,7 +210,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
       {autoWho === "human" && (
         <section className="card human-card">
           <h3>Step 3 · Human executed</h3>
-          <Toggle label="Sleeper Agent phase has happened" checked={sleeperDone} onChange={(v) => dispatch({ type: "sleeper", done: v })} on="Yes" off="No" />
+          {executedBoomer && sleeperToggle}
           <ol className="steps">
             <li>
               Reveal <em>all</em> your Loyalty cards.
@@ -237,6 +246,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
 
           {newId && (
             <div className="new-char-notes">
+              {!executedBoomer && SLEEPER_SENSITIVE.includes(newId) && sleeperToggle}
               <NewCharacterNotes id={newId} sleeperDone={sleeperDone} />
               <button
                 className="primary"
