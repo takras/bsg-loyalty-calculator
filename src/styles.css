@@ -908,9 +908,38 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 :root[data-theme="rulebook"] body {
   background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.014) 0 2px, transparent 2px 7px), var(--bg);
 }
+:root[data-theme="rulebook"] {
+  /* Page frame corners are cut at 45° by about the screen's corner radius (the bottom safe-area inset is a good
+     proxy: ~34px on rounded iPhones, 0 on desktop), so rounded screen corners don't swallow the red line. */
+  --frame-cut: var(--sa-bottom);
+}
+/* steel frame: the screen minus a chamfered octagon, 6.5px in from the edges. Each loop ends where it started, so
+   the joining segments retrace each other instead of enclosing a sliver. */
 :root[data-theme="rulebook"] body::after {
-  background: none;
-  box-shadow: inset 0 0 0 2px #3a3d42, inset 0 0 0 5px var(--rb-steel), inset 0 0 0 6.5px var(--rb-red);
+  background: var(--rb-steel);
+  clip-path: polygon(evenodd,
+    0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+    calc(6.5px + var(--frame-cut)) 6.5px, calc(100% - 6.5px - var(--frame-cut)) 6.5px,
+    calc(100% - 6.5px) calc(6.5px + var(--frame-cut)), calc(100% - 6.5px) calc(100% - 6.5px - var(--frame-cut)),
+    calc(100% - 6.5px - var(--frame-cut)) calc(100% - 6.5px), calc(6.5px + var(--frame-cut)) calc(100% - 6.5px),
+    6.5px calc(100% - 6.5px - var(--frame-cut)), 6.5px calc(6.5px + var(--frame-cut)),
+    calc(6.5px + var(--frame-cut)) 6.5px);
+}
+/* red inner line: the ring between octagons at 5px and 6.5px; the outer cut is 0.88px longer so the diagonal is as
+   thick as the straight sides */
+:root[data-theme="rulebook"] body::before {
+  content: ""; position: fixed; inset: 0; z-index: 101; pointer-events: none; background: var(--rb-red);
+  --fo: calc(var(--frame-cut) + 0.88px);
+  clip-path: polygon(evenodd,
+    calc(5px + var(--fo)) 5px, calc(100% - 5px - var(--fo)) 5px,
+    calc(100% - 5px) calc(5px + var(--fo)), calc(100% - 5px) calc(100% - 5px - var(--fo)),
+    calc(100% - 5px - var(--fo)) calc(100% - 5px), calc(5px + var(--fo)) calc(100% - 5px),
+    5px calc(100% - 5px - var(--fo)), 5px calc(5px + var(--fo)), calc(5px + var(--fo)) 5px,
+    calc(6.5px + var(--frame-cut)) 6.5px, calc(100% - 6.5px - var(--frame-cut)) 6.5px,
+    calc(100% - 6.5px) calc(6.5px + var(--frame-cut)), calc(100% - 6.5px) calc(100% - 6.5px - var(--frame-cut)),
+    calc(100% - 6.5px - var(--frame-cut)) calc(100% - 6.5px), calc(6.5px + var(--frame-cut)) calc(100% - 6.5px),
+    6.5px calc(100% - 6.5px - var(--frame-cut)), 6.5px calc(6.5px + var(--frame-cut)),
+    calc(6.5px + var(--frame-cut)) 6.5px);
 }
 
 /* headings: dark small caps, no plates */

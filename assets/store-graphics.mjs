@@ -1,4 +1,5 @@
-// Google Play store graphics: phone screenshots (1080×1920) and the feature graphic (1024×500).
+// Store graphics: Google Play phone and 7"/10" tablet screenshots plus the feature graphic (1024×500), App Store
+// iPhone/iPad screenshots and creative assets.
 // Captures the real app (production build) in headless Chrome with a sample game loaded, then renders
 // framed store images with headlines. Output: store/google-play/*.png (24-bit, no alpha, as Play requires).
 //
@@ -31,11 +32,12 @@ const config = {
   pegasus: true, exodus: true, daybreak: true, cylonFleet: true, personalGoal: false, finalFive: false,
   ending: "kobol", noSympathizer: false, sympatheticCylon: false, forceExodusLoyalty: false,
   forcePegasusLoyalty: false, forceMotive: false, forceOverlay: false, allySeasons: false, forceDemetrius: false,
+  allowAllCharacters: false, ignoreTypeBalance: false,
 };
 // A legal, balanced table: 1 Political, 1 Military, 2 Pilots, 1 Support, 1 Cylon Leader.
 const seats = ["laura", "starbuck", "william", "chief", "boomer", "cavil"];
 const setupState = {
-  version: 1, config, phase: "setup", titles: {}, removed: [], sleeperDone: false, log: [],
+  version: 1, config, phase: "setup", titles: {}, removed: [], log: [],
   players: seats.map((characterId, seat) => ({ seat, characterId, status: "human" })),
 };
 const playingState = {
@@ -55,35 +57,36 @@ const playingState = {
 
 // ---------- the scenes ----------
 // `prepare` runs in the page after navigation; it may open sections and scroll.
+// Mostly the default Rulebook theme, plus one screen in each of the other themes.
 const scenes = [
   {
-    id: "01-setup", state: setupState, route: "#/setup",
+    id: "01-setup", state: setupState, route: "#/setup", theme: "rulebook",
     title: "Set up any game", sub: "Expansions, characters and the exact Loyalty deck",
     prepare: `document.querySelectorAll('.card')[1]?.scrollIntoView({block:'start'}); window.scrollBy(0,-120);`,
   },
   {
-    id: "02-titles", state: playingState, route: "#/titles",
+    id: "02-titles", state: playingState, route: "#/titles", theme: "rulebook",
     title: "Track every title", sub: "Lines of succession that update as the game unfolds",
   },
   {
-    id: "03-combat", state: playingState, route: "#/combat",
+    id: "03-combat", state: playingState, route: "#/combat", theme: "cic",
     title: "Every roll at a glance", sub: "The full combat table – tap a ship for the details",
     prepare: `[...document.querySelectorAll('.ship-row')].find(b => b.querySelector('.ship-name')?.textContent.trim() === 'Raider')?.click();`,
   },
   {
-    id: "04-crisis", state: playingState, route: "#/crisis",
+    id: "04-crisis", state: playingState, route: "#/crisis", theme: "colonial",
     title: "Know every Crisis icon", sub: "Activations, the Cylon Fleet board and the jump track",
     prepare: `document.querySelector('.icon-grid')?.scrollIntoView({block:'start'}); window.scrollBy(0,-150);`,
   },
   {
-    id: "05-execution", state: playingState, route: "#/execution/0",
+    id: "05-execution", state: playingState, route: "#/execution/0", theme: "caprica",
     title: "Executions made easy", sub: "Human or Cylon – it tells you what happens next",
     prepare: `[...document.querySelectorAll('button.choice')].find(b => b.textContent.startsWith('Human'))?.click();
               await new Promise(r => setTimeout(r, 200));
               document.querySelector('.human-card')?.scrollIntoView({block:'start'}); window.scrollBy(0,-110);`,
   },
   {
-    id: "06-rules", state: playingState, route: "#/rules",
+    id: "06-rules", state: playingState, route: "#/rules", theme: "rulebook",
     title: "Rules on demand", sub: "Quick rules plus the full, searchable rulebook",
     prepare: `document.querySelector('#rule-cylon-turn summary')?.click();
               await new Promise(r => setTimeout(r, 200));
@@ -97,11 +100,17 @@ const TARGETS = [
   // Google Play phone: 360×640 @3 → 1080×1920
   { prefix: "phone", out: "store/google-play", W: 1080, H: 1920, maxWidth: 0.8, device: "phone",
     view: { w: 360, h: 640, scale: 3, mobile: true } },
+  // Google Play 7" tablet: 9:16, 1080×1920 (600 px wide tablet @1.8)
+  { prefix: "tablet7", out: "store/google-play/tablet-7", W: 1080, H: 1920, maxWidth: 0.82, device: "tablet",
+    view: { w: 600, h: 1067, scale: 1.8, mobile: true } },
+  // Google Play 10" tablet: 9:16, 1440×2560 (800 px wide tablet @1.8)
+  { prefix: "tablet10", out: "store/google-play/tablet-10", W: 1440, H: 2560, maxWidth: 0.82, device: "tablet",
+    view: { w: 800, h: 1422, scale: 1.8, mobile: true } },
   // App Store iPhone 6.1"/6.3" slot: 1179×2556 (iPhone 393×852 @3)
-  { prefix: "iphone", out: "store/app-store/iphone-6.3", W: 1179, H: 2556, maxWidth: 0.8, device: "phone", jpeg: true,
+  { prefix: "iphone", out: "store/app-store/iphone-6.3", W: 1179, H: 2556, maxWidth: 0.8, device: "phone",
     view: { w: 393, h: 852, scale: 3, mobile: true } },
   // App Store iPad 13" slot: 2048×2732 (iPad 1024×1366 @2 – the app's wide layout)
-  { prefix: "ipad", out: "store/app-store/ipad-13", W: 2048, H: 2732, maxWidth: 0.82, device: "tablet", jpeg: true,
+  { prefix: "ipad", out: "store/app-store/ipad-13", W: 2048, H: 2732, maxWidth: 0.82, device: "tablet",
     view: { w: 1024, h: 1366, scale: 2, mobile: false } },
 ];
 
@@ -142,15 +151,24 @@ async function settle() {
     await Promise.race([Promise.all(pending), new Promise(r => setTimeout(r, 2500))]);`);
   await sleep(400);
 }
-async function shot(path, { width, height, scale, jpeg = false }) {
+async function shot(path, { width, height, scale }) {
   await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: scale, mobile: scale > 1 });
   await sleep(150);
   const { data } = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
   // Play wants 24-bit images without transparency
   // Embedded sRGB profile: App Store Connect can refuse images without one ("Your file couldn't be saved").
   const img = sharp(Buffer.from(data, "base64")).flatten({ background: "#04070b" }).removeAlpha().withMetadata({ icc: "srgb", density: 72 });
-  await img.clone().png({ compressionLevel: 9 }).toFile(path);
-  if (jpeg) await img.clone().jpeg({ quality: 92, chromaSubsampling: "4:4:4", mozjpeg: true }).toFile(path.replace(/\.png$/, ".jpg"));
+  const png = await img.png({ compressionLevel: 9 }).toBuffer();
+  // On Windows another process (preview pane, antivirus) can briefly hold the file; retry instead of failing.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      writeFileSync(path, png);
+      break;
+    } catch (e) {
+      if (attempt >= 6) throw e;
+      await sleep(500 * attempt);
+    }
+  }
 }
 
 try {
@@ -224,7 +242,7 @@ try {
       await send("Page.navigate", { url: `http://localhost:${PORT}/` });
       await sleep(600);
       await evaluate(`localStorage.setItem('bsg-helper-state-v1', ${JSON.stringify(JSON.stringify(s.state))});
-        localStorage.setItem('bsg-theme', 'cic'); location.hash = '${s.route}';`);
+        localStorage.setItem('bsg-theme', '${s.theme}'); location.hash = '${s.route}';`);
       await send("Page.reload");
       await sleep(900);
       await settle();
@@ -239,7 +257,7 @@ try {
       await send("Page.navigate", { url: fileUrl(tpl) });
       await sleep(500);
       await settle();
-      await shot(join(t.out, `${t.prefix}-${s.id}.png`), { width: t.W, height: t.H, scale: 1, jpeg: t.jpeg });
+      await shot(join(t.out, `${t.prefix}-${s.id}.png`), { width: t.W, height: t.H, scale: 1 });
     }
     console.log(`wrote ${scenes.length} screenshots to ${t.out}/ (${t.W}x${t.H})`);
   }
