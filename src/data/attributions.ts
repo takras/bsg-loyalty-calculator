@@ -73,6 +73,8 @@ export const softwareCredits: Credit[] = [
 export const fontCredits: Credit[] = [
   { name: "VT323", detail: "By Peter Hull. Console-style labels.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/VT323" },
   { name: "Rajdhani", detail: "By Indian Type Foundry. Body text.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/Rajdhani" },
+  { name: "Michroma", detail: "By Vernon Adams. Rulebook theme headings.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/Michroma" },
+  { name: "Saira", detail: "By Omnibus-Type. Rulebook theme text and labels.", license: "OFL-1.1", url: "https://fonts.google.com/specimen/Saira" },
   { name: "Fontsource", detail: "Self-hosted font packages, so the app works offline.", license: "MIT", url: "https://fontsource.org" },
   {
     name: "SF Viper Squadron",

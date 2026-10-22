@@ -75,6 +75,8 @@ export function RulebookView() {
   const [hits, setHits] = useState<Hit[]>([]);
   const [toc, setToc] = useState<{ id: string; text: string; level: number }[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Small screens: the contents list is a drawer opened from a floating button.
+  const [tocOpen, setTocOpen] = useState(false);
   const tocRef = useRef<HTMLDivElement>(null);
   const ref = useRef<HTMLDivElement>(null);
   const html = useMemo(buildHtml, []);
@@ -135,7 +137,14 @@ export function RulebookView() {
     if (e.top < b.top + 24 || e.bottom > b.bottom - 24) {
       box.scrollTop = box.scrollTop + (e.top - b.top) - b.height / 3;
     }
-  }, [activeId]);
+  }, [activeId, tocOpen]);
+
+  useEffect(() => {
+    if (!tocOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setTocOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [tocOpen]);
 
   // Search: highlight matches in visible text and list them.
   useEffect(() => {
@@ -256,7 +265,8 @@ export function RulebookView() {
       </div>
 
       <div className="rulebook-layout">
-        <nav className="rulebook-toc card" aria-label="Rulebook contents">
+        {tocOpen && <div className="toc-backdrop" onClick={() => setTocOpen(false)} aria-hidden />}
+        <nav className={`rulebook-toc card ${tocOpen ? "open" : ""}`} id="rulebook-contents" aria-label="Rulebook contents">
           {/* scroll inside the card so the card's chamfered background stays behind the list */}
           <div className="toc-scroll" ref={tocRef}>
           <ul>
@@ -265,7 +275,10 @@ export function RulebookView() {
                 <button
                   className="link"
                   aria-current={t.id === activeId ? "location" : undefined}
-                  onClick={() => jumpTo(`[id="${CSS.escape(t.id)}"]`)}
+                  onClick={() => {
+                    setTocOpen(false);
+                    jumpTo(`[id="${CSS.escape(t.id)}"]`);
+                  }}
                 >
                   {t.text}
                 </button>
@@ -276,6 +289,14 @@ export function RulebookView() {
         </nav>
         <article className="rulebook card" ref={ref} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
       </div>
+      <button
+        className="toc-fab"
+        aria-expanded={tocOpen}
+        aria-controls="rulebook-contents"
+        onClick={() => setTocOpen((o) => !o)}
+      >
+        {tocOpen ? "✕ Close" : "☰ Contents"}
+      </button>
     </div>
   );
 }

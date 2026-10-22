@@ -105,6 +105,9 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 :root {
+  /* console labels and body text; the Rulebook theme swaps these */
+  --font-label: "VT323", ui-monospace, monospace;
+  --font-body: "Rajdhani", system-ui, sans-serif;
   --sa-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
   --sa-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
   --sa-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
@@ -115,13 +118,16 @@ html, body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font-family: "Rajdhani", system-ui, sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   font-size: 17px;
   line-height: 1.4;
   -webkit-text-size-adjust: 100%;
 }
 body { overscroll-behavior-y: none; }
+/* Never scroll sideways: on phones, anything poking past the right edge (even briefly) makes the browser widen the
+   layout, and it stays wider after switching tabs. clip (not hidden) keeps the sticky header working. */
+html, body, .app { overflow-x: clip; }
 
 /* faint CRT scanlines */
 body::after {
@@ -135,7 +141,7 @@ body::after {
 
 .px, h1, h2, h3, .badge, .tabs, .dock, button, .die-cell, .section-title, .hud-status, .succession-head, .rank,
 .title-name, .pill, .big, .hit-heading, summary {
-  font-family: "VT323", ui-monospace, monospace;
+  font-family: var(--font-label);
   font-weight: 400;
   letter-spacing: 0.06em;
 }
@@ -193,7 +199,7 @@ img { max-width: 100%; height: auto; }
 
 /* ---------- buttons: cut-corner console keys ---------- */
 button {
-  --c: 7px; --fill: var(--pill); --edge: var(--pill);
+  --c: 7px; --fill: var(--pill); --edge: var(--btn-edge, var(--pill));
   font-size: 1.15rem;
   color: var(--pill-ink);
   background: var(--pill);
@@ -230,7 +236,9 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 
 .hud-top {
   position: sticky; top: 0; z-index: 20;
-  background: var(--bg);
+  /* the sections' panel colour, so the header reads as its own band; the page background shows behind the rail */
+  --rail-h: 10px;
+  background: linear-gradient(var(--panel), var(--panel)) top / 100% calc(100% - var(--rail-h)) no-repeat, var(--bg);
   padding-top: var(--sa-top);
   margin: 0 -12px 12px;
 }
@@ -254,7 +262,7 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 .hud-btn { min-height: 36px; padding: 0.1rem 0.7rem; font-size: 1.05rem; }
 /* angled chrome strip, like the top rail of the CIC screens */
 .hud-rail {
-  height: 10px; margin: 0 12px;
+  height: var(--rail-h, 10px); margin: 0;
   background: var(--chrome);
   clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 10px 100%);
   opacity: 0.85;
@@ -268,7 +276,7 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 .subtabs a {
   --c: 10px;
   flex: 1; text-align: center; padding: 4px 10px; margin-top: 8px; text-decoration: none; text-transform: uppercase;
-  font-family: "VT323", monospace; font-size: 1.2rem; letter-spacing: 0.08em;
+  font-family: var(--font-label); font-size: 1.2rem; letter-spacing: 0.08em;
   color: var(--muted); background: var(--panel-2); opacity: 0.6;
 }
 .subtabs a:hover { opacity: 0.85; }
@@ -334,7 +342,7 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
   padding: 10px 14px;
 }
 .callout ul { margin: 0.3em 0 0; }
-.errors { color: var(--alert); font-family: "VT323", monospace; font-size: 1.2rem; letter-spacing: 0.04em; }
+.errors { color: var(--alert); font-family: var(--font-label); font-size: 1.2rem; letter-spacing: 0.04em; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .footer { margin-top: 28px; padding-top: 10px; border-top: 2px solid var(--line); }
@@ -401,7 +409,7 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 .issues li.error { --edge: var(--alert); }
 .issue-tag {
   --c: 4px;
-  font-family: "VT323", monospace; font-size: 1.05rem; text-transform: uppercase; padding: 0 6px; margin-right: 4px;
+  font-family: var(--font-label); font-size: 1.05rem; text-transform: uppercase; padding: 0 6px; margin-right: 4px;
   background: var(--warn); color: #1a1305;
 }
 .issues li.error .issue-tag { background: var(--alert); color: #fff; }
@@ -421,7 +429,7 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 }
 .char-tile.selected { --edge: var(--on); --bw: 2.5px; --fill: color-mix(in srgb, var(--on) 18%, var(--panel-2)); }
 /* on paper the green edge alone doesn't stand out, so tint the tile more */
-:root[data-theme="caprica"] .char-tile.selected { --fill: color-mix(in srgb, var(--on) 30%, var(--panel-2)); }
+:root[data-theme="caprica"] .char-tile.selected, :root[data-theme="rulebook"] .char-tile.selected { --fill: color-mix(in srgb, var(--on) 30%, var(--panel-2)); }
 .char-tile.warned { --edge: var(--alert); --bw: 2.5px; }
 .char-tile .portrait { width: 100% !important; height: auto !important; aspect-ratio: 174 / 256; max-width: 120px; }
 /* The portrait art has its own cut corners (27/174 of its width), so the tile's top cut must follow the portrait's
@@ -472,13 +480,13 @@ button.char-tile::before {
   position: absolute; left: 10%; right: 10%; top: 87.5%; height: 9%;
   /* column flex + text-align: vertical centring while overflow stays measurable (FitText) */
   display: flex; flex-direction: column; justify-content: center; text-align: center;
-  font-family: "Rajdhani", sans-serif; font-weight: 700; line-height: 1; text-transform: uppercase;
+  font-family: var(--font-body); font-weight: 700; line-height: 1; text-transform: uppercase;
   font-size: clamp(9px, 12.5cqw, 16px);
   letter-spacing: 0.02em; color: #f4ecd2; text-shadow: 0 1px 2px #000, 0 0 3px #000;
   white-space: nowrap; overflow: hidden;
 }
 .portrait:not(.has-img) .plate { top: auto; bottom: 4%; height: auto; color: var(--label); }
-.portrait-initials { font-family: "VT323", monospace; color: var(--label); letter-spacing: 0.06em; }
+.portrait-initials { font-family: var(--font-label); color: var(--label); letter-spacing: 0.06em; }
 .portrait.type-political { border-bottom-color: var(--political); }
 .portrait.type-military { border-bottom-color: var(--military); }
 .portrait.type-pilot { border-bottom-color: var(--pilot); }
@@ -489,7 +497,7 @@ button.char-tile::before {
 .loyalty-total .big { font-size: 3rem; line-height: 1; color: var(--on); vertical-align: middle; margin-right: 4px; }
 .deck-table { border-collapse: collapse; width: 100%; margin-bottom: 12px; }
 .deck-table td { padding: 6px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.deck-table .num { font-family: "VT323", monospace; font-size: 1.35rem; width: 2.6em; color: var(--label); }
+.deck-table .num { font-family: var(--font-label); font-size: 1.35rem; width: 2.6em; color: var(--label); }
 .deck-table .cylon-row td:nth-child(2) { color: var(--alert); font-weight: 700; }
 .deck-table td.muted { font-size: 0.85rem; }
 @media (max-width: 520px) {
@@ -532,7 +540,7 @@ button.char-tile::before {
 .hs-item.title-admiral { --edge: var(--t-admiral); }
 .hs-item.title-president { --edge: var(--t-president); }
 .hs-item.title-cag { --edge: var(--t-cag); }
-.hs-title { font-family: "VT323", monospace; font-size: 0.95rem; color: var(--muted); text-transform: uppercase; line-height: 1; }
+.hs-title { font-family: var(--font-label); font-size: 0.95rem; color: var(--muted); text-transform: uppercase; line-height: 1; }
 .hs-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
 
 .player-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
@@ -580,7 +588,7 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
   .succession .give { opacity: 0; }
   .succession li:hover .give, .succession .give:focus { opacity: 1; }
 }
-.log { font-family: "VT323", monospace; font-size: 1.15rem; letter-spacing: 0.03em; color: var(--label); padding-left: 1.6em; }
+.log { font-family: var(--font-label); font-size: 1.15rem; letter-spacing: 0.03em; color: var(--label); padding-left: 1.6em; }
 .log li::marker { color: var(--muted); }
 
 /* ---------- combat ---------- */
@@ -604,7 +612,7 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .die-cell.damage { background: var(--damage); color: #1a1305; }
 .die-cell.destroy { background: var(--destroy); color: #fff; }
 .die-cell.special { background: var(--special); color: #fff; }
-.no-roll { --c: 6px; padding: 6px 10px; background: var(--destroy); color: #fff; font-family: "VT323", monospace; font-size: 1.3rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.no-roll { --c: 6px; padding: 6px 10px; background: var(--destroy); color: #fff; font-family: var(--font-label); font-size: 1.3rem; letter-spacing: 0.05em; text-transform: uppercase; }
 .target-notes { font-size: 0.9rem; color: var(--muted); margin: 6px 0 0; }
 .token-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin-bottom: 10px; }
 .token { display: flex; gap: 10px; align-items: center; }
@@ -619,7 +627,7 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
   display: grid; grid-template-columns: 96px 1fr 22px; align-items: center; gap: 10px;
   width: 100%; padding: 8px 2px; min-height: 64px; text-align: left;
   background: none; border: none; border-radius: 0; color: var(--text);
-  font-family: "Rajdhani", sans-serif; letter-spacing: 0; text-transform: none; font-size: 1rem;
+  font-family: var(--font-body); letter-spacing: 0; text-transform: none; font-size: 1rem;
 }
 .ship-row:hover:not(:disabled) { border: none; background: rgba(127, 146, 169, 0.06); }
 .ship-left { display: flex; flex-direction: column; align-items: center; gap: 2px; }
@@ -631,17 +639,17 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .ship-art-svg.turn { transform: rotate(90deg); }
 .ship-art-svg .ship-icon { color: #a9d3f5; filter: drop-shadow(0 0 1px #0b2347) drop-shadow(0 0 1px #0b2347) drop-shadow(0 0 6px rgba(120, 190, 255, 0.45)); }
 .ship-art-svg .ship-icon.cylon { color: #a9d3f5; }
-.ship-name { font-family: "VT323", monospace; font-size: 0.95rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; line-height: 1; }
+.ship-name { font-family: var(--font-label); font-size: 0.95rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: center; line-height: 1; }
 .ship-results { display: flex; flex-direction: column; gap: 3px; align-items: flex-end; text-align: right; }
 .res-group { display: flex; flex-direction: column; align-items: flex-end; }
 .res-by { font-size: 0.82rem; font-style: italic; color: var(--muted); line-height: 1.1; }
 .res-line { font-weight: 600; font-size: 1.02rem; line-height: 1.2; }
-.res-range { font-family: "VT323", monospace; font-size: 1.3rem; letter-spacing: 0.02em; }
+.res-range { font-family: var(--font-label); font-size: 1.3rem; letter-spacing: 0.02em; }
 .res-line.damage .res-range { color: var(--damage); }
 .res-line.destroy .res-range { color: var(--destroy); }
 .res-line.special .res-range { color: var(--special); }
 .res-line.destroy:not(:has(.res-range)) { color: var(--destroy); }
-.chev { font-family: "VT323", monospace; font-size: 1.6rem; color: var(--muted); text-align: center; }
+.chev { font-family: var(--font-label); font-size: 1.6rem; color: var(--muted); text-align: center; }
 .ship-item.open .chev { color: var(--on); }
 .ship-item.open .ship-row { background: rgba(127, 146, 169, 0.08); }
 .ship-detail { padding: 8px 4px 14px; }
@@ -655,9 +663,9 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 :root[data-theme="colonial"] .ship-art img,
 :root[data-theme="colonial"] .ship-art-svg .ship-icon { filter: sepia(1) saturate(2.6) hue-rotate(-12deg) brightness(1.05) drop-shadow(0 0 6px rgba(255, 179, 71, 0.4)); }
 /* glowing ship art washes out on paper: outline it in navy instead */
-:root[data-theme="caprica"] .ship-art img,
-:root[data-theme="caprica"] .ship-art-svg .ship-icon { filter: drop-shadow(0 0 1px #0b2347) drop-shadow(0 0 1px #0b2347); }
-:root[data-theme="caprica"] .ship-art.scar img { filter: hue-rotate(155deg) saturate(2.2) drop-shadow(0 0 1px #3a0b0b) drop-shadow(0 0 1px #3a0b0b); }
+:root[data-theme="caprica"] .ship-art img, :root[data-theme="rulebook"] .ship-art img,
+:root[data-theme="caprica"] .ship-art-svg .ship-icon, :root[data-theme="rulebook"] .ship-art-svg .ship-icon { filter: drop-shadow(0 0 1px #0b2347) drop-shadow(0 0 1px #0b2347); }
+:root[data-theme="caprica"] .ship-art.scar img, :root[data-theme="rulebook"] .ship-art.scar img { filter: hue-rotate(155deg) saturate(2.2) drop-shadow(0 0 1px #3a0b0b) drop-shadow(0 0 1px #3a0b0b); }
 
 /* ---------- crisis ---------- */
 .icon-grid { display: grid; gap: 12px; }
@@ -689,7 +697,7 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .icon-map { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 2px; }
 .icon-map .game-icon { height: 28px; }
 .game-icon.skill-check-ability { height: 1.3em; width: auto; filter: invert(1) drop-shadow(0 0 3px var(--glow)); }
-:root[data-theme="caprica"] .game-icon.skill-check-ability { filter: none; }
+:root[data-theme="caprica"] .game-icon.skill-check-ability, :root[data-theme="rulebook"] .game-icon.skill-check-ability { filter: none; }
 .rule-icon { margin-right: 4px; vertical-align: -0.2em; }
 
 .reckless-card { --edge: var(--warn); }
@@ -705,12 +713,16 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .collapsible > summary h3 { font-size: 1.2rem; }
 .collapsible > summary .badge.ghost { --fill: var(--chrome); --edge: var(--accent-ink); color: var(--accent-ink); }
 .collapsible > summary :is(h2, h3) { min-width: 0; flex-wrap: wrap; }
-.collapse-hint { white-space: nowrap; flex: 0 0 auto; align-self: center; margin-left: auto; font-family: "VT323", monospace; font-size: 1.15rem; color: var(--muted); text-transform: uppercase; }
+.collapse-hint { white-space: nowrap; flex: 0 0 auto; align-self: center; margin-left: auto; font-family: var(--font-label); font-size: 1.15rem; color: var(--muted); text-transform: uppercase; }
 .collapse-hint::after { content: "Show +"; }
 .collapsible[open] .collapse-hint::after { content: "Hide −"; }
 .collapsible-body { margin-top: 10px; }
 .card:has(> .collapsible:not([open])) { padding-bottom: 0; }
 .card h3.sub { margin-top: 12px; color: var(--muted); font-size: 1.1rem; }
+/* execution: Sleeper Agent question, required where it changes the instructions */
+.sleeper-q { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-weight: 600; margin-bottom: 10px; }
+.sleeper-q.unanswered { --edge: var(--warn); --bw: 2px; }
+.sleeper-hint { display: block; font-size: 0.85rem; color: var(--warn); }
 .reckless-steps li.hl { color: var(--text); background: rgba(231, 176, 74, 0.12); padding: 2px 6px; margin-left: -6px; border-left: 3px solid var(--warn); }
 
 /* ---------- execution ---------- */
@@ -719,10 +731,12 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .exec-head h2 { margin: 0 0 4px; color: var(--alert); }
 .pick-list { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .pick { --c: 10px; display: flex; align-items: center; gap: 8px; padding: 6px 10px 6px 6px; font-family: inherit; text-transform: none; letter-spacing: 0; font-weight: 700; color: var(--text); }
+.pick-text { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; flex: 1; }
+.pick-text .badge { margin-left: 0; }
 .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .choice { --c: 12px; display: flex; flex-direction: column; gap: 2px; padding: 14px; text-align: left; min-height: 84px; }
-.choice strong { font-family: "VT323", monospace; font-weight: 400; font-size: 1.8rem; line-height: 1; }
-.choice span { font-family: "Rajdhani", sans-serif; font-size: 0.9rem; text-transform: none; letter-spacing: 0; color: var(--muted); }
+.choice strong { font-family: var(--font-label); font-weight: 400; font-size: 1.8rem; line-height: 1; }
+.choice span { font-family: var(--font-body); font-size: 0.9rem; text-transform: none; letter-spacing: 0; color: var(--muted); }
 .choice.human strong { color: var(--colonial); }
 .choice.cylon strong { color: var(--alert); }
 .choice.human.active { --fill: var(--panel-2); --edge: var(--colonial); --bw: 2.5px; }
@@ -774,23 +788,39 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
   border-bottom: 1px solid var(--line); border-radius: 0; padding: 6px 2px; text-transform: none; letter-spacing: 0; color: var(--text);
 }
 .hit-heading { font-size: 1.05rem; color: var(--accent); text-transform: uppercase; }
-.hit-snippet { font-family: "Rajdhani", sans-serif; font-size: 0.92rem; color: var(--muted); }
+.hit-snippet { font-family: var(--font-body); font-size: 0.92rem; color: var(--muted); }
 .hit-snippet b { color: var(--text); }
 .rulebook-layout { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
-.rulebook-toc { display: none; }
+.rulebook-toc { font-size: 0.9rem; padding-right: 6px; }
+.toc-scroll { overflow: auto; padding-right: 6px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.rulebook-toc ul { list-style: none; padding: 0; margin: 0; }
+.rulebook-toc li { --c: 4px; margin: 2px 0; border-left: 3px solid transparent; padding-left: 6px; }
+.rulebook-toc li.lvl-3 { padding-left: 18px; }
+.rulebook-toc button.link { text-decoration: none; color: var(--text); text-align: left; }
+.rulebook-toc li.lvl-3 button.link { color: var(--muted); }
+.rulebook-toc li.active { background: var(--chrome); border-left-color: var(--chrome-hi); }
+.rulebook-toc li.active button.link { color: var(--accent-ink); font-weight: 700; }
+/* small screens: the contents slide out from the left, opened by a floating button above the dock */
+@media (max-width: 899px) {
+  .rulebook-toc {
+    position: fixed; z-index: 40; left: max(8px, var(--sa-left));
+    top: calc(var(--sa-top) + 8px); bottom: calc(136px + var(--sa-bottom)); width: min(320px, 86vw);
+    display: flex; flex-direction: column;
+    transform: translateX(calc(-100% - 16px)); transition: transform 0.2s ease; visibility: hidden;
+  }
+  .rulebook-toc.open { transform: none; visibility: visible; }
+  .toc-scroll { flex: 1; min-height: 0; }
+  .toc-backdrop { position: fixed; inset: 0; z-index: 35; background: rgba(0, 0, 0, 0.45); }
+  button.toc-fab {
+    position: fixed; z-index: 41; right: max(14px, var(--sa-right)); bottom: calc(84px + var(--sa-bottom));
+    --fill: var(--chrome); --edge: var(--chrome-hi); color: var(--accent-ink); box-shadow: none;
+  }
+}
 @media (min-width: 900px) {
   .rulebook-layout { grid-template-columns: 250px minmax(0, 1fr); align-items: start; }
-  .rulebook-toc { display: block; position: sticky; top: 120px; font-size: 0.9rem; padding-right: 6px; }
-  .toc-scroll { max-height: calc(100vh - 168px); overflow: auto; padding-right: 6px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
-  .rulebook-toc ul { list-style: none; padding: 0; margin: 0; }
-  .rulebook-toc li { margin: 2px 0; }
-  .rulebook-toc li.lvl-3 { padding-left: 12px; }
-  .rulebook-toc button.link { text-decoration: none; color: var(--text); text-align: left; }
-  .rulebook-toc li.lvl-3 button.link { color: var(--muted); }
-  .rulebook-toc li { --c: 4px; border-left: 3px solid transparent; padding-left: 6px; }
-  .rulebook-toc li.lvl-3 { padding-left: 18px; }
-  .rulebook-toc li.active { background: var(--chrome); border-left-color: var(--chrome-hi); }
-  .rulebook-toc li.active button.link { color: var(--accent-ink); font-weight: 700; }
+  .rulebook-toc { position: sticky; top: 120px; }
+  .toc-scroll { max-height: calc(100vh - 168px); }
+  button.toc-fab { display: none; }
 }
 .rulebook { overflow-wrap: anywhere; }
 .rulebook h2 { margin-top: 1.4em; padding-bottom: 4px; border-bottom: 2px solid var(--chrome); color: var(--accent); }
@@ -810,3 +840,172 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .rulebook img { background: transparent; border-radius: 4px; }
 .rulebook mark.hit { --c: 2px; background: var(--on); color: var(--on-ink); }
 .rulebook .flash { outline: 3px solid var(--on); outline-offset: 2px; }
+
+/* ================= Rulebook theme =================
+   Light, after the printed rulebook: white paper inside a steel page frame with a red inner line, sidebar boxes
+   capped by gunmetal bars, small-caps headings and a white footer band. The print uses BankGothic and Eurostile
+   (commercial); Michroma and Saira are free stand-ins. size-adjust keeps them close to the sizes the layout was
+   built for with VT323/Rajdhani. */
+@font-face {
+  font-family: "RB Body"; font-weight: 500; font-display: swap; size-adjust: 92%;
+  src: url("../node_modules/@fontsource/saira/files/saira-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "RB Body"; font-weight: 600; font-display: swap; size-adjust: 92%;
+  src: url("../node_modules/@fontsource/saira/files/saira-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "RB Body"; font-weight: 700; font-display: swap; size-adjust: 92%;
+  src: url("../node_modules/@fontsource/saira/files/saira-latin-700-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "RB Label"; font-weight: 400; font-display: swap; size-adjust: 70%;
+  src: url("../node_modules/@fontsource/saira/files/saira-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "RB Heading"; font-weight: 400; font-display: swap; size-adjust: 78%;
+  src: url("../node_modules/@fontsource/michroma/files/michroma-latin-400-normal.woff2") format("woff2");
+}
+
+:root[data-theme="rulebook"] {
+  --bg: #f4f6f7;
+  --panel: #e3e8ee;
+  --panel-2: #eef1f4;
+  --chrome: #3d424a;
+  --chrome-hi: #22262b;
+  --line: #b7bec7;
+  --text: #24272b;
+  --muted: #646b74;
+  --label: #33373d;
+  --accent: #a52a2a;
+  --accent-ink: #ffffff;
+  --on: #3d424a;
+  --on-ink: #ffffff;
+  --pill: #cbd2da;
+  --pill-ink: #2c3036;
+  --btn-edge: #a9b1bb;
+  --alert: #b8312f;
+  --alert-soft: rgba(184, 49, 47, 0.12);
+  --warn: #a8740a;
+  --damage: #c8850f;
+  --destroy: #c0262d;
+  --special: #3f73c8;
+  --miss: #e2e6eb;
+  --colonial: #2b5c8c;
+  --cylon: #b8312f;
+  --glow: rgba(61, 66, 74, 0.18);
+  --font-label: "RB Label", "Saira", system-ui, sans-serif;
+  --font-body: "RB Body", "Saira", system-ui, sans-serif;
+  --font-heading: "RB Heading", "Michroma", system-ui, sans-serif;
+  /* print colours */
+  --rb-red: #b8312f;
+  --rb-steel: #5f6369;
+  --rb-bar: linear-gradient(to bottom, #6a7078, #3c4148 55%, #2a2e33);
+  color-scheme: light;
+}
+
+/* paper with the faint vertical grain of the print, inside a steel frame with a red inner line */
+:root[data-theme="rulebook"] body {
+  background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.014) 0 2px, transparent 2px 7px), var(--bg);
+}
+:root[data-theme="rulebook"] body::after {
+  background: none;
+  box-shadow: inset 0 0 0 2px #3a3d42, inset 0 0 0 5px var(--rb-steel), inset 0 0 0 6.5px var(--rb-red);
+}
+
+/* headings: dark small caps, no plates */
+:root[data-theme="rulebook"] :is(.card > h2:first-child, .card > h3:first-child, .collapsible > summary :is(h2, h3), .section-title) {
+  font-family: var(--font-heading); text-transform: none; font-variant-caps: small-caps;
+  letter-spacing: 0.1em; color: var(--label);
+}
+:root[data-theme="rulebook"] :is(.card > h2:first-child, .card > h3:first-child) {
+  display: block; margin: 0 0 10px; padding: 0; background: none; clip-path: none; font-size: 1.3rem;
+}
+:root[data-theme="rulebook"] .collapsible > summary :is(h2, h3) {
+  background: none; clip-path: none; padding: 4px 14px; font-size: 1.15rem;
+}
+:root[data-theme="rulebook"] .collapsible > summary .badge.ghost { --fill: var(--panel); --edge: var(--chrome); color: var(--chrome); }
+:root[data-theme="rulebook"] .section-title { font-size: 1.15rem; }
+:root[data-theme="rulebook"] .section-title::after { background: var(--rb-red); height: 1.5px; opacity: 1; }
+
+/* sidebar boxes: light panel with red side rules, gunmetal bars along the top and bottom */
+:root[data-theme="rulebook"] .card {
+  --c: 12px; --edge: var(--rb-red);
+  --fill: linear-gradient(to bottom, #e6ebf1, #d9e0e8);
+  padding: 30px 14px 30px;
+  background:
+    var(--rb-bar) 50% 1.5px / calc(100% - 3px) 14px no-repeat,
+    var(--rb-bar) 50% calc(100% - 1.5px) / calc(100% - 3px) 14px no-repeat,
+    var(--edge);
+}
+:root[data-theme="rulebook"] .card::before { inset: 17px 1.5px; clip-path: none; }
+:root[data-theme="rulebook"] .collapsible > summary { margin: -13px -14px 0; }
+:root[data-theme="rulebook"] .card:has(> .collapsible:not([open])) { padding-bottom: 17px; }
+
+/* header: paper, with a gunmetal rail under it */
+:root[data-theme="rulebook"] .hud-top {
+  padding-top: calc(var(--sa-top) + 6px);
+  /* the print's panel gradient, down to the rail */
+  --rail-h: 12px;
+  background: linear-gradient(to bottom, #e6ebf1, #d9e0e8) top / 100% calc(100% - var(--rail-h)) no-repeat, var(--bg);
+}
+:root[data-theme="rulebook"] .hud-rail {
+  /* square ends, running into the steel page frame */
+  height: var(--rail-h); opacity: 1; clip-path: none;
+  background: linear-gradient(to bottom, var(--rb-red) 0 1.5px, transparent 1.5px calc(100% - 1.5px), var(--rb-red) calc(100% - 1.5px)),
+    var(--rb-bar);
+}
+:root[data-theme="rulebook"] .hud-rail.thin { height: 1.5px; background: var(--rb-red); }
+
+/* sub-tabs: gunmetal for the active one */
+:root[data-theme="rulebook"] .subtabs { border-bottom-color: var(--rb-red); border-bottom-width: 2px; }
+:root[data-theme="rulebook"] .subtabs a { background: var(--panel); color: var(--muted); opacity: 1; }
+:root[data-theme="rulebook"] .subtabs a.active { background: var(--rb-bar); color: #fff; }
+
+/* the dock is the page footer: a white band with a red rule, on the steel frame */
+:root[data-theme="rulebook"] .dock {
+  background: #fff; border-top: 1.5px solid var(--rb-red);
+  box-shadow: 0 -5px 0 var(--rb-steel);
+  padding-left: max(10px, var(--sa-left)); padding-right: max(10px, var(--sa-right));
+}
+:root[data-theme="rulebook"] .dock a { color: var(--muted); font-variant-caps: small-caps; }
+:root[data-theme="rulebook"] .dock a.active { background: var(--rb-bar); color: #fff; }
+@media (min-width: 900px) {
+  :root[data-theme="rulebook"] .dock { background: transparent; border: none; box-shadow: none; }
+  :root[data-theme="rulebook"] .dock a { background: var(--panel); color: var(--label); }
+  :root[data-theme="rulebook"] .dock a.active { background: var(--rb-bar); color: #fff; }
+}
+
+/* page footer like the print's: white band, red outline, chamfered ends */
+:root[data-theme="rulebook"] .footer {
+  --c: 12px; --bw: 1.5px;
+  position: relative; isolation: isolate; border: none; padding: 10px 16px; color: var(--muted);
+  background: var(--rb-red);
+  clip-path: polygon(var(--c) 0, calc(100% - var(--c)) 0, 100% var(--c), 100% calc(100% - var(--c)),
+    calc(100% - var(--c)) 100%, var(--c) 100%, 0 calc(100% - var(--c)), 0 var(--c));
+}
+/* white band inset by the outline width, cut parallel to the outer corners so the red line stays even */
+:root[data-theme="rulebook"] .footer::before {
+  content: ""; position: absolute; inset: var(--bw); z-index: -1; background: #fff;
+  clip-path: polygon(
+    calc(var(--c) - var(--bw) * 0.5858) 0, calc(100% - var(--c) + var(--bw) * 0.5858) 0,
+    100% calc(var(--c) - var(--bw) * 0.5858), 100% calc(100% - var(--c) + var(--bw) * 0.5858),
+    calc(100% - var(--c) + var(--bw) * 0.5858) 100%, calc(var(--c) - var(--bw) * 0.5858) 100%,
+    0 calc(100% - var(--c) + var(--bw) * 0.5858), 0 calc(var(--c) - var(--bw) * 0.5858));
+}
+
+/* inactive tabs get a grey outline that follows their cut top corners (the fill sits on ::before) */
+:root[data-theme="rulebook"] .subtabs a:not(.active) { position: relative; isolation: isolate; background: var(--btn-edge); }
+:root[data-theme="rulebook"] .subtabs a:not(.active)::before {
+  content: ""; position: absolute; inset: 1.5px 1.5px 0; z-index: -1; background: var(--panel);
+  clip-path: polygon(calc(var(--c) - 0.9px) 0, calc(100% - var(--c) + 0.9px) 0, 100% calc(var(--c) - 0.9px), 100% 100%, 0 100%, 0 calc(var(--c) - 0.9px));
+}
+@media (min-width: 900px) {
+  :root[data-theme="rulebook"] .dock a:not(.active) { position: relative; isolation: isolate; background: var(--btn-edge); }
+  :root[data-theme="rulebook"] .dock a:not(.active)::before {
+    content: ""; position: absolute; inset: 1.5px 1.5px 0; z-index: -1; background: var(--panel);
+    clip-path: polygon(calc(var(--c) - 0.9px) 0, calc(100% - var(--c) + 0.9px) 0, 100% calc(var(--c) - 0.9px), 100% 100%, 0 100%, 0 calc(var(--c) - 0.9px));
+  }
+  :root[data-theme="rulebook"] .dock a:not(.active):hover::before { background: #f4f6f8; }
+}
+

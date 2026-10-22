@@ -7,6 +7,8 @@ import type { Plugin } from "vite";
 
 // Shipped inside the native apps but not part of the web bundle.
 const NATIVE_PACKAGES = ["@capacitor/android", "@capacitor/ios", "@capacitor/preferences", "@capacitor/splash-screen"];
+// Font files referenced by path from styles.css (the Rulebook theme), so they don't show up as imported modules.
+const CSS_FONT_PACKAGES = ["@fontsource/michroma", "@fontsource/saira"];
 
 const LICENSE_FILE = /^(licen[cs]e|copying|ofl)(\.(md|txt))?$/i;
 
@@ -76,7 +78,7 @@ export function thirdPartyLicenses(): Plugin {
       });
     },
     generateBundle() {
-      const names = new Set<string>(NATIVE_PACKAGES);
+      const names = new Set<string>([...NATIVE_PACKAGES, ...CSS_FONT_PACKAGES]);
       for (const id of this.getModuleIds()) {
         const name = packageOf(id);
         if (name) names.add(name);

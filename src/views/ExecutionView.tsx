@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Toggle } from "../components/Toggle";
 import { CharacterTile, Portrait } from "../components/CharacterTile";
 import { RowPortrait, useRowPortraitSize } from "../components/RowPortrait";
 import { characterById, characters } from "../data/characters";
@@ -14,7 +13,7 @@ const SLEEPER_SENSITIVE = ["boomer", "gaius"];
 
 export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) => void }) {
   const { state, dispatch, flags } = useStore();
-  const { players, config, titles, removed, sleeperDone } = state;
+  const { players, config, titles, removed } = state;
   const [who, setWho] = useState<Who | null>(null);
   const [newId, setNewId] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -27,9 +26,10 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
   // The Sleeper Agent phase only matters if the executed character was Boomer or the new one is Boomer/Baltar,
   // so the switch is only shown then, next to the instructions it changes.
   const executedBoomer = player?.characterId === "boomer";
-  const sleeperToggle = (
-    <Toggle label="Sleeper Agent phase has happened" checked={sleeperDone} onChange={(v) => dispatch({ type: "sleeper", done: v })} on="Yes" off="No" />
-  );
+  // Asked fresh for every execution and required before confirming, so it can't be skipped or carried over stale.
+  const [sleeper, setSleeper] = useState<boolean | null>(null);
+  const sleeperQuestion = <SleeperQuestion value={sleeper} onChange={setSleeper} />;
+  const sleeperNeeded = executedBoomer || (newId !== null && SLEEPER_SENSITIVE.includes(newId));
   const resurrection =
     config.ending === "newcaprica"
       ? "the Resurrection Ship (or the Medical Center during the New Caprica phase before Galactica returns)"
@@ -85,8 +85,11 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
                 return (
                   <button key={p.seat} className="pick" onClick={() => restart(p.seat)}>
                     <RowPortrait c={c} size={pickPortrait.size} onHeight={pickPortrait.onHeight(p.seat)} />
-                    <span className="pick-name">{c.short}</span>
-                    {p.status !== "human" && <span className="badge warn">{p.status === "cylon" ? "Revealed Cylon" : "In Brig"}</span>}
+                    {/* name with the status badge under it, so the badge never runs off a narrow button */}
+                    <span className="pick-text">
+                      <span className="pick-name">{c.short}</span>
+                      {p.status !== "human" && <span className="badge warn">{p.status === "cylon" ? "Revealed Cylon" : "In Brig"}</span>}
+                    </span>
                   </button>
                 );
               })}
@@ -210,7 +213,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
       {autoWho === "human" && (
         <section className="card human-card">
           <h3>Step 3 · Human executed</h3>
-          {executedBoomer && sleeperToggle}
+          {executedBoomer && sleeperQuestion}
           <ol className="steps">
             <li>
               Reveal <em>all</em> your Loyalty cards.
@@ -219,13 +222,20 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
             <li>The fleet loses 1 morale.</li>
             <li>Return {char.short} to the box{flags.allies ? " and discard your Trauma tokens" : ""}.</li>
             {flags.exodusLoyalty && <li>Discard all your Loyalty cards.</li>}
-            {!flags.exodusLoyalty && player.characterId === "boomer" && !sleeperDone && <li>You were Boomer before the Sleeper Agent phase: draw 1 new Loyalty card.</li>}
+            {!flags.exodusLoyalty && executedBoomer && sleeper !== true && (
+              <li>
+                {sleeper === null
+                  ? "If the Sleeper Agent phase hasn’t happened yet (you were Boomer): draw 1 new Loyalty card."
+                  : "You were Boomer before the Sleeper Agent phase: draw 1 new Loyalty card."}
+              </li>
+            )}
             <li>Choose a new character below (any type; no alternates of characters in play, no Cylon Leaders).</li>
             <li>Start at the character’s setup location (Hangar Deck if unavailable){config.ending === "newcaprica" ? "; on New Caprica before Galactica returns, Resistance HQ" : ""}.</li>
             {flags.exodusLoyalty && (
               <li>
                 Shuffle 1 card from the “Not a Cylon” pile into the Loyalty deck and draw 1 Loyalty card.
-                {player.characterId === "boomer" && !sleeperDone && " (Executed Boomer before the Sleeper Agent phase: draw 1 more.)"}
+                {executedBoomer && sleeper === false && " (Executed Boomer before the Sleeper Agent phase: draw 1 more.)"}
+                {executedBoomer && sleeper === null && " (Executed Boomer: draw 1 more if the Sleeper Agent phase hasn’t happened yet.)"}
               </li>
             )}
             <li>Titles you held go to the first in line – including your new character. Other titles stay put.</li>
@@ -246,10 +256,12 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
 
           {newId && (
             <div className="new-char-notes">
-              {!executedBoomer && SLEEPER_SENSITIVE.includes(newId) && sleeperToggle}
-              <NewCharacterNotes id={newId} sleeperDone={sleeperDone} />
+              {!executedBoomer && SLEEPER_SENSITIVE.includes(newId) && sleeperQuestion}
+              {/* the new character's setup depends on the answer, so wait for it */}
+              {!(sleeperNeeded && sleeper === null) && <NewCharacterNotes id={newId} sleeperDone={sleeper === true} />}
               <button
                 className="primary"
+                disabled={sleeperNeeded && sleeper === null}
                 onClick={() => {
                   dispatch({ type: "replaceCharacter", seat: player.seat, newId });
                   setDone(
@@ -316,6 +328,25 @@ function NewCharacterNotes({ id, sleeperDone }: { id: string; sleeperDone: boole
           <li key={n}>{n}</li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** Yes/No with nothing selected until answered; highlighted while unanswered. */
+function SleeperQuestion({ value, onChange }: { value: boolean | null; onChange: (v: boolean) => void }) {
+  return (
+    <div className={`callout sleeper-q ${value === null ? "unanswered" : ""}`}>
+      <span>
+        Has the Sleeper Agent phase happened?
+        {value === null && <span className="sleeper-hint">Answer to continue</span>}
+      </span>
+      <div className="segmented" role="group" aria-label="Sleeper Agent phase has happened">
+        {[true, false].map((v) => (
+          <button key={String(v)} className={value === v ? "active" : ""} aria-pressed={value === v} onClick={() => onChange(v)}>
+            {v ? "Yes" : "No"}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

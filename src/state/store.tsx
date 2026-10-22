@@ -22,7 +22,6 @@ export interface State {
   titles: Partial<Record<TitleId, number>>; // seat of the holder
   /** Characters removed from the game (executed). Cannot be chosen again. */
   removed: string[];
-  sleeperDone: boolean;
   /** Seat of the player holding the Mutineer card (Daybreak). */
   mutineer?: number;
   log: string[];
@@ -35,7 +34,6 @@ const initialState: State = {
   phase: "setup",
   titles: {},
   removed: [],
-  sleeperDone: false,
   log: [],
 };
 
@@ -49,7 +47,6 @@ export type Action =
   | { type: "giveTitle"; title: TitleId; seat: number }
   | { type: "setMutineer"; seat: number | null }
   | { type: "replaceCharacter"; seat: number; newId: string }
-  | { type: "sleeper"; done: boolean }
   | { type: "reset" };
 
 export const STORAGE_KEY = "bsg-helper-state-v1";
@@ -59,7 +56,9 @@ function parse(raw: string | null): State {
   try {
     const parsed = JSON.parse(raw) as State;
     if (parsed.version !== 1) return initialState;
-    return { ...initialState, ...parsed, config: { ...defaultConfig, ...parsed.config } };
+    // Drop players whose character no longer exists (e.g. a renamed id), rather than crashing on them.
+    const players = (parsed.players ?? []).filter((p) => characterById[p.characterId]);
+    return { ...initialState, ...parsed, players, config: { ...defaultConfig, ...parsed.config } };
   } catch {
     return initialState;
   }
@@ -120,7 +119,7 @@ function reducer(s: State, a: Action): State {
       const log = (Object.keys(titles) as TitleId[]).map(
         (t) => `${TITLE_LABEL[t]}: ${nameOf(s, titles[t]!)} (start of game)`,
       );
-      return { ...s, phase: "playing", titles, log, removed: [], sleeperDone: false, mutineer: undefined };
+      return { ...s, phase: "playing", titles, log, removed: [], mutineer: undefined };
     }
     case "backToSetup":
       return {
@@ -177,8 +176,6 @@ function reducer(s: State, a: Action): State {
       // An executed Mutineer's new character receives the card again, as if just received.
       return s.mutineer === a.seat ? stripTitles(updated, a.seat, "received the Mutineer") : updated;
     }
-    case "sleeper":
-      return { ...s, sleeperDone: a.done, log: [...s.log, a.done ? "Sleeper Agent phase done" : "Sleeper Agent phase undone"] };
     case "reset":
       // Start a new game but keep the game settings (expansions, modules, ending, variants).
       return { ...initialState, config: normalize(s.config, false) };
