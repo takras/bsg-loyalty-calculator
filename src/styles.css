@@ -908,11 +908,11 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 :root[data-theme="rulebook"] body {
   background: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.014) 0 2px, transparent 2px 7px), var(--bg);
 }
-:root[data-theme="rulebook"] {
-  /* Page frame corners are cut at 45° by about the screen's corner radius (the bottom safe-area inset is a good
-     proxy: ~34px on rounded iPhones, 0 on desktop), so rounded screen corners don't swallow the red line. */
-  --frame-cut: var(--sa-bottom);
-}
+:root[data-theme="rulebook"] { --frame-cut: 0px; }
+/* In the native app the frame sits on the physical screen edge, so its corners are cut at 45° by about the screen's
+   corner radius (the bottom safe-area inset is a good proxy: ~34px on rounded iPhones) and rounded screen corners
+   don't swallow the red line. In a browser the frame stays square. */
+:root[data-theme="rulebook"][data-native] { --frame-cut: var(--sa-bottom); }
 /* steel frame: the screen minus a chamfered octagon, 6.5px in from the edges. Each loop ends where it started, so
    the joining segments retrace each other instead of enclosing a sliver. */
 :root[data-theme="rulebook"] body::after {
