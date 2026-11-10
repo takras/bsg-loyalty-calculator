@@ -6,7 +6,7 @@ A pure client-side app: no server, no login. State is kept in the browser's loca
 
 ## Sections
 
-- **Setup** - expansions, Exodus modules, ending and variants; pick characters in seat order
+- **Setup** - expansions, Exodus modules, ending and variants; pick characters
   (type balance and alternate versions are enforced). Shows the exact Loyalty deck, the deal,
   starting title holders and a board/component checklist.
 - **Titles** - Admiral / President / CAG lines of succession for the characters in play. Mark players

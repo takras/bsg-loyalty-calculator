@@ -48,7 +48,7 @@ BSG Companion is a free, unofficial companion for Battlestar Galactica: The Boar
 
 SET UP ANY GAME
 • Choose the expansions (Pegasus, Exodus, Daybreak), modules, ending and official variants.
-• Enter the characters your table picked, in seat order - the app checks the line-up against the selection rules.
+• Enter the characters your table picked - the app checks the line-up against the selection rules.
 • Get the exact Loyalty deck for your player count and options, who receives which cards, and a checklist of board and component setup.
 
 TRACK EVERY TITLE
