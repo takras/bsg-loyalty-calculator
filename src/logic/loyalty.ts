@@ -40,15 +40,15 @@ export function computeLoyalty(config: Config, flags: Flags, characterIds: strin
   const cl = flags.cylonLeader;
   const leaders = characterIds.filter((id) => characterById[id]?.type === "cylonleader");
   if (leaders.length > 1) errors.push("Only one player may choose a Cylon Leader.");
-  if (cl && n < 4) errors.push("Cylon Leaders cannot be used in a 3 player game (needs 4–7 players).");
+  if (cl && n < 4) errors.push("Cylon Leaders cannot be used in a 3 player game (needs 4-7 players).");
 
   const table = loyaltyTable(cl, flags.exodusLoyalty);
   const row = table[n];
   if (!row) {
     errors.push(
       cl
-        ? "With a Cylon Leader the game needs 4–7 players (including the Leader)."
-        : "The game needs 3–6 players (7 only with a Cylon Leader).",
+        ? "With a Cylon Leader the game needs 4-7 players (including the Leader)."
+        : "The game needs 3-6 players (7 only with a Cylon Leader).",
     );
   }
 

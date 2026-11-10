@@ -24,7 +24,7 @@ export function CylonTurn() {
           <strong>Movement:</strong> move to another Cylon location (discard 1 Skill card to change ship){flags.pegasus && ", or use a Movement ability"}.
         </li>
         <li>
-          <strong>Action:</strong> take one action – usually your location’s.
+          <strong>Action:</strong> take one action, usually your location’s.
         </li>
         <li className="muted">
           <strong>No Crisis step and no Activate Cylon Ships step.</strong>
@@ -43,7 +43,7 @@ export function CylonTurn() {
         <li>hold titles, or be sent to the Brig{newCaprica ? ", Detention" : ""} or Sickbay{flags.pegasus ? " (or chosen for the Airlock)" : ""};</li>
         <li>
           use Skill card text{flags.treachery ? " (except Treachery cards)" : ""}, Quorum cards{config.daybreak ? ", Mutiny cards" : ""} or
-          their old character’s abilities{flags.cylonLeader ? " – Cylon Leaders keep their own" : ""};
+          their old character’s abilities{flags.cylonLeader ? " - Cylon Leaders keep their own" : ""};
         </li>
         <li>add more than 1 card to a Skill check.</li>
       </ul>
@@ -71,8 +71,8 @@ export function CylonTurn() {
             </li>
             {flags.cylonFleet && (
               <li>
-                <strong>Basestar Bridge:</strong> choose 2 different: the CAG places a civilian ship · roll 1–3 jump track
-                −1, 4–8 Pursuit +1 · place a basestar or 3 raiders in one Cylon Fleet area · roll, and if lower than the
+                <strong>Basestar Bridge:</strong> choose 2 different: the CAG places a civilian ship · roll 1-3 jump track
+                −1, 4-8 Pursuit +1 · place a basestar or 3 raiders in one Cylon Fleet area · roll, and if lower than the
                 raiders on the main board, draw 2 Galactica damage tokens and resolve 1.
               </li>
             )}
@@ -82,8 +82,8 @@ export function CylonTurn() {
                 <li><strong>Breeder’s Canyon:</strong> draw and resolve the top Crisis; skip this turn’s Prepare for Jump step.</li>
                 <li><strong>Shipyard:</strong> look at the top Locked civilian ship and put it on top or bottom of the stack.</li>
                 <li>
-                  <strong>Detain a Human:</strong> in a location with a human and an Occupation Force, roll: 1–3 Detention,
-                  4–7 Medical Center, 8 no effect.
+                  <strong>Detain a Human:</strong> in a location with a human and an Occupation Force, roll: 1-3 Detention,
+                  4-7 Medical Center, 8 no effect.
                 </li>
               </>
             )}

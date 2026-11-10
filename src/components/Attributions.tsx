@@ -73,7 +73,7 @@ export function Attributions() {
           <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">
             Privacy policy
           </a>{" "}
-          – the app collects no personal data; your game is only saved on this device.
+          - the app collects no personal data; your game is only saved on this device.
         </p>
         <CreditList title="The game" items={gameCredits} />
         <CreditList title="Rules sources" items={ruleCredits} />

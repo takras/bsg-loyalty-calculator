@@ -1,4 +1,4 @@
-# App Store listing – BSG Companion
+# App Store listing - BSG Companion
 
 Copy each block into App Store Connect. Character limits are Apple's; counts are checked by
 `node store/check-listing.mjs`.
@@ -25,7 +25,7 @@ Setup, titles & rules helper
 ```
 2026 takras
 ```
-(Use your full name or company name instead of "takras" if you prefer – Apple shows it as "© 2026 …".)
+(Use your full name or company name instead of "takras" if you prefer - Apple shows it as "© 2026 …".)
 
 ## URLs
 
@@ -37,9 +37,9 @@ Setup, titles & rules helper
 
 ## Version information
 
-**Promotional text** (170 – can be changed any time without a new review)
+**Promotional text** (170 - can be changed any time without a new review)
 ```
-Keep your board game night moving: the exact Loyalty deck, who holds every title, combat rolls, Crisis icons and executions – offline, right at the table.
+Keep your board game night moving: the exact Loyalty deck, who holds every title, combat rolls, Crisis icons and executions, offline, right at the table.
 ```
 
 **Description** (4000)
@@ -48,17 +48,17 @@ BSG Companion is a free, unofficial companion for Battlestar Galactica: The Boar
 
 SET UP ANY GAME
 • Choose the expansions (Pegasus, Exodus, Daybreak), modules, ending and official variants.
-• Enter the characters your table picked, in seat order – the app checks the line-up against the selection rules.
+• Enter the characters your table picked, in seat order - the app checks the line-up against the selection rules.
 • Get the exact Loyalty deck for your player count and options, who receives which cards, and a checklist of board and component setup.
 
 TRACK EVERY TITLE
 • See who holds President, Admiral and CAG at a glance.
-• Mark players as in the Brig or revealed Cylons – titles pass down the lines of succession automatically, following the rules.
+• Mark players as in the Brig or revealed Cylons - titles pass down the lines of succession automatically, following the rules.
 • Full lines of succession for every character, with the next in line highlighted.
 
 EVERY ROLL AT A GLANCE
 • The complete combat table: which rolls damage or destroy each ship.
-• Tap a ship for die strips, notes and damage tokens – basestar, Galactica and Pegasus.
+• Tap a ship for die strips, notes and damage tokens - basestar, Galactica and Pegasus.
 • How to activate a viper, nukes, Scar, Mark VII vipers and assault raptors when their expansions are in play.
 
 KNOW EVERY CRISIS ICON
@@ -94,7 +94,7 @@ First release: setup and Loyalty deck helper, title succession tracking, combat 
 
 ## Screenshots
 
-Upload in this order – the first three appear in App Store search results.
+Upload in this order - the first three appear in App Store search results.
 
 | Slot | Files |
 | --- | --- |
@@ -127,7 +127,7 @@ search shows the first screenshots instead.
 ```
 BSG Companion is a free reference/helper app for players of the physical board game "Battlestar Galactica: The Board Game". No account or sign-in is needed; all features are available immediately. The app makes no network requests and stores the current game only on the device.
 
-To try it: on the Setup tab, turn on any expansions, tap 3–6 characters and press "Start game", then use the Titles, Combat, Crisis, Execute and Rules tabs.
+To try it: on the Setup tab, turn on any expansions, tap 3-6 characters and press "Start game", then use the Titles, Combat, Crisis, Execute and Rules tabs.
 
 The app is an unofficial fan project and states this in the app (Rules → About & attributions) and in its description.
 ```

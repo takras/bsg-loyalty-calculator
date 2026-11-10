@@ -136,7 +136,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
         <ol className="steps">
           <li>Discard your entire hand of Skill cards.</li>
           <li>
-            Discard Quorum cards <em>attached to your character</em> (e.g. Assign Vice President – not the President’s hand)
+            Discard Quorum cards <em>attached to your character</em> (e.g. Assign Vice President, not the President’s hand)
             {config.daybreak && ", all Mutiny cards and your Miracle token"}.
           </li>
           {flags.exodusLoyalty && (
@@ -149,7 +149,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
       <section className="card">
         <h3>Step 2 · Is the player human or Cylon?</h3>
         {isLeader || player.status === "cylon" ? (
-          <p className="muted">{isLeader ? "Cylon Leader" : "Already a revealed Cylon"} – Cylon procedure below.</p>
+          <p className="muted">{isLeader ? "Cylon Leader" : "Already a revealed Cylon"} - Cylon procedure below.</p>
         ) : (
           <>
             <p className="muted small">The executed player checks their Loyalty cards.</p>
@@ -174,7 +174,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
             <li>Reveal <em>one</em> “You Are a Cylon” card; keep the others face down. Do <strong>not</strong> take its action.</li>
             {flags.allySeasons && <li>Take 1 Trauma token from the pile (not the Mood Pool).</li>}
             <li>Discard Skill cards down to 3 (already 0 after Step 1).</li>
-            <li>Lose all titles to the highest in each line of succession – Quorum hand, nukes etc. go with them.</li>
+            <li>Lose all titles to the highest in each line of succession - Quorum hand, nukes etc. go with them.</li>
             <li>Move to {resurrection}. A piloted ship returns to the Reserves.</li>
             <li><strong>No</strong> Super Crisis card.</li>
             {config.daybreak && <li>If you were the Mutineer, hand the Mutineer card face up to a human player of your choice.</li>}
@@ -204,7 +204,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
             <li>Move to {resurrection}. A piloted ship returns to the Reserves.</li>
             {flags.allySeasons && <li>Take 1 Trauma token from the pile (not the Mood Pool).</li>}
             {isLeader && <li>Do <strong>not</strong> reveal your {flags.motive ? "Motives" : "Agenda"}.</li>}
-            <li>That’s it – no new character.</li>
+            <li>That’s it, no new character.</li>
           </ol>
           <button className="primary" onClick={() => setDone(`${char.short} moves to the Resurrection Ship.`)}>Done</button>
         </section>
@@ -238,14 +238,14 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
                 {executedBoomer && sleeper === null && " (Executed Boomer: draw 1 more if the Sleeper Agent phase hasn’t happened yet.)"}
               </li>
             )}
-            <li>Titles you held go to the first in line – including your new character. Other titles stay put.</li>
+            <li>Titles you held go to the first in line, including your new character. Other titles stay put.</li>
             {config.daybreak && <li>If you were the Mutineer, your new character receives the Mutineer card again (face up).</li>}
             {flags.allies && <li>Draw 3 new Trauma tokens{config.ending === "ioniannebula" ? " (replace any Disaster drawn)" : ""}.</li>}
           </ol>
 
           <h3>Choose the new character</h3>
           {choices.length === 0 ? (
-            <p className="errors">No characters left – the humans lose!</p>
+            <p className="errors">No characters left - the humans lose!</p>
           ) : (
             <div className="char-grid">
               {choices.map((c) => (
@@ -266,7 +266,7 @@ export function ExecutionView({ seat, go }: { seat?: number; go: (tab: string) =
                   dispatch({ type: "replaceCharacter", seat: player.seat, newId });
                   setDone(
                     `${char.short} was executed and is now playing ${characterById[newId].short}.${
-                      heldTitles.length ? " Titles were redistributed – check the Titles tab." : ""
+                      heldTitles.length ? " Titles were redistributed - check the Titles tab." : ""
                     }`,
                   );
                 }}

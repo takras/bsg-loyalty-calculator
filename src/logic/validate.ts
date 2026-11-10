@@ -23,9 +23,9 @@ export function validateLineup(ids: string[], config: Config): Issue[] {
   // Player count
   if (leaders.length > 0) {
     if (n < 4 || n > 7)
-      issues.push({ level: "error", text: `With a Cylon Leader the game needs 4–7 players (you have ${n}).` });
+      issues.push({ level: "error", text: `With a Cylon Leader the game needs 4-7 players (you have ${n}).` });
   } else if (n < 3 || n > 6) {
-    issues.push({ level: "error", text: `The game needs 3–6 players, or 7 with a Cylon Leader (you have ${n}).` });
+    issues.push({ level: "error", text: `The game needs 3-6 players, or 7 with a Cylon Leader (you have ${n}).` });
   }
 
   // Cylon Leaders
@@ -37,7 +37,7 @@ export function validateLineup(ids: string[], config: Config): Issue[] {
     if (c.version === "original" && c.versionOf && ids.includes(c.versionOf)) {
       issues.push({
         level: "error",
-        text: `${c.name}: both the original and alternate version are chosen – only one is allowed.`,
+        text: `${c.name}: both the original and alternate version are chosen - only one is allowed.`,
         ids: [c.id, c.versionOf],
       });
     }

@@ -35,7 +35,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
               return (
                 <div key={t} className={`hs-item title-${t}`}>
                   <span className="hs-title">{TITLE_LABEL[t]}</span>
-                  <span className="hs-name">{p ? characterById[p.characterId].short : "—"}</span>
+                  <span className="hs-name">{p ? characterById[p.characterId].short : "-"}</span>
                 </div>
               );
             })}
@@ -98,7 +98,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
         </section>
       ) : (
         <div className="callout">
-          {players.length === 0 ? "No characters chosen yet – showing the full lines of succession. " : "Game not started – showing who would get each title. "}
+          {players.length === 0 ? "No characters chosen yet, showing the full lines of succession. " : "Game not started, showing who would get each title. "}
           <button className="link" onClick={() => go("setup")}>Go to Setup</button>
         </div>
       )}
@@ -165,13 +165,13 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
       <section className="card">
         <h3>Title rules</h3>
         <ul className="checks">
-          <li>Titles pass down the line automatically when a holder reveals as a Cylon (or, for Admiral{config.cylonFleet ? "/CAG" : ""}, goes to the Brig). They never move just because someone higher in line becomes available – use “give” for card effects.</li>
+          <li>Titles pass down the line automatically when a holder reveals as a Cylon (or, for Admiral{config.cylonFleet ? "/CAG" : ""}, goes to the Brig). They never move just because someone higher in line becomes available - use “give” for card effects.</li>
           <li>Only human players hold titles. A revealed Cylon loses all titles to the highest in each line.{flags.cylonLeader && " Cylon Leaders never hold titles, even while Infiltrating."}</li>
           <li>Admiral{config.cylonFleet ? " and CAG" : ""} in the Brig lose the title to the highest in line <em>not</em> in the Brig. They don’t get it back on release. If everyone is in the Brig, the highest in line holds it until someone leaves.</li>
           <li>The President keeps the title in the Brig.</li>
           {config.ending === "newcaprica" && <li>Detention on New Caprica does not strip the Admiral{config.cylonFleet ? " or CAG" : ""}.</li>}
           {flags.execution && <li>Executed human: titles go to the first in line, including the new character. Other holders keep theirs.</li>}
-          {config.daybreak && <li>Receiving the Mutineer card strips all titles (to the highest in line, excluding the Mutineer) – tap “Mutineer” on that player. A Mutineer who reveals as a Cylon hands the card to a human player.</li>}
+          {config.daybreak && <li>Receiving the Mutineer card strips all titles (to the highest in line, excluding the Mutineer) - tap “Mutineer” on that player. A Mutineer who reveals as a Cylon hands the card to a human player.</li>}
           <li>Quorum hand, nukes and destination cards travel with the title.</li>
         </ul>
       </section>

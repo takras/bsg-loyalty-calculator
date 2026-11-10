@@ -233,7 +233,7 @@ export function RulebookView() {
             aria-label="Search the rulebook"
           />
         </div>
-        <Toggle label="Official variants (1–2 players, co-op)" checked={showVariants} onChange={setShowVariants} on="Shown" off="Hidden" />
+        <Toggle label="Official variants (1-2 players, co-op)" checked={showVariants} onChange={setShowVariants} on="Shown" off="Hidden" />
         <p className="small muted">
           Filtered to your Setup choices. Source:{" "}
           <a href="https://jbiatek.github.io/BSGRulebook/rulebook.html" target="_blank" rel="noopener noreferrer">

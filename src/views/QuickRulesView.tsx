@@ -61,7 +61,7 @@ export function QuickRulesView() {
             <li>Keep other Loyalty cards hidden; pass them on from the Resurrection Ship.</li>
           )}
           {config.daybreak && <li>If you were the Mutineer, give the Mutineer card to a human player.</li>}
-          <li>If you revealed on your own turn, your turn ends – no Crisis.</li>
+          <li>If you revealed on your own turn, your turn ends, no Crisis.</li>
           <li>From now on, play Cylon turns (see “Cylon player’s turn”).</li>
         </ol>
       ),
@@ -153,7 +153,7 @@ export function QuickRulesView() {
       body: (
         <ul>
           <li>Admiral starts with 2. {flags.exodus ? "Used nukes are discarded and can be regained (3rd token in the box)." : "Used nukes are removed from the game."}</li>
-          <li>{flags.cylonFleet ? "Targets a whole space area: 1–2 basestar damaged twice · 3–6 basestar destroyed · 7 + 3 raiders · 8 everything." : "1–2 damaged twice · 3–6 destroyed · 7–8 destroyed + 3 raiders."}</li>
+          <li>{flags.cylonFleet ? "Targets a whole space area: 1-2 basestar damaged twice · 3-6 basestar destroyed · 7 + 3 raiders · 8 everything." : "1-2 damaged twice · 3-6 destroyed · 7-8 destroyed + 3 raiders."}</li>
         </ul>
       ),
     },

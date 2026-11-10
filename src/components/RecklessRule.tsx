@@ -13,9 +13,9 @@ export function RecklessSummary() {
         <li>Draw and show 1 Treachery card.</li>
         <li>
           <strong>Strength 0?</strong> Draw 1 more Treachery card, resolve <em>both</em> cards’ Skill Check Abilities
-          (duplicates allowed), then discard both – they don’t count toward the total.
+          (duplicates allowed), then discard both - they don’t count toward the total.
         </li>
-        <li>Otherwise discard it – nothing happens.</li>
+        <li>Otherwise discard it - nothing happens.</li>
       </ol>
     </>
   ) : (
@@ -32,7 +32,7 @@ export function RecklessSequence() {
   const daybreak = state.config.daybreak;
   return (
     <ol className="steps reckless-steps">
-      <li>Check begins – auto pass/fail effects resolve.</li>
+      <li>Check begins - auto pass/fail effects resolve.</li>
       <li className="hl">
         <strong>Play the Reckless card</strong> (a “before cards are added” ability). Max one per check; not after
         “Restore Order”, and “Restore Order” can’t follow it.
@@ -44,7 +44,7 @@ export function RecklessSequence() {
         {!daybreak && (
           <>
             {" "}
-            <strong>“Reckless Skill Check” Treachery abilities trigger now</strong> – only because the check is Reckless.
+            <strong>“Reckless Skill Check” Treachery abilities trigger now</strong>, only because the check is Reckless.
           </>
         )}
       </li>

@@ -98,7 +98,7 @@ export function CrisisView() {
       name: "Activate Basestars",
       does: (
         <>
-          Each basestar on the <strong>main board</strong> attacks Galactica (4–8 = damage)
+          Each basestar on the <strong>main board</strong> attacks Galactica (4-8 = damage)
           {flags.pegasus ? "; the current player may let Pegasus take the damage instead" : ""}. Disabled Weapons tokens
           stop a basestar firing.
         </>
@@ -116,7 +116,7 @@ export function CrisisView() {
         <ol className="steps">
           <li>Draw and read the Crisis.</li>
           <li>
-            Resolve it: {cf ? "" : "Cylon Attack, "}Skill Check{flags.pegasus ? " (possibly Reckless – see below)" : ""}, or
+            Resolve it: {cf ? "" : "Cylon Attack, "}Skill Check{flags.pegasus ? " (possibly Reckless, see below)" : ""}, or
             “[Someone] Chooses” event.
           </li>
           <li>
@@ -136,7 +136,7 @@ export function CrisisView() {
           ) : (
             <>
               <strong>No Cylon Fleet board:</strong> new ships only come in via Cylon Attack cards, launches, and
-              location/card effects – all on the main board. With nothing to activate, nothing happens.
+              location/card effects, all on the main board. With nothing to activate, nothing happens.
             </>
           )}
         </p>

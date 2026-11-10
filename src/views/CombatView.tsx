@@ -29,7 +29,7 @@ const ORDER = [
 
 const EFFECT_WORD = { damage: "Damaged", destroy: "Destroyed", special: "", miss: "Miss" } as const;
 
-const range = (b: Band) => (b.min === b.max ? `${b.min}` : `${b.min}–${b.max}`);
+const range = (b: Band) => (b.min === b.max ? `${b.min}` : `${b.min}-${b.max}`);
 
 function DieStrip({ bands }: { bands: Band[] }) {
   return (
@@ -109,7 +109,7 @@ function ShipRow({ t, open, onToggle }: { t: Target; open: boolean; onToggle: ()
               <TokenGrid tokens={galacticaTokens} compact />
               <p className="small muted">
                 Draw a Galactica damage token: a location token damages that location (characters there go to Sickbay);
-                a resource token means lose 1 of it. 6 damaged locations destroy Galactica – the humans lose.
+                a resource token means lose 1 of it. 6 damaged locations destroy Galactica - the humans lose.
               </p>
             </>
           )}
@@ -166,7 +166,7 @@ export function CombatView() {
           <li><strong>Launch</strong> a viper from the Reserves into an area with a viper launch icon.</li>
           <li><strong>Move</strong> to an adjacent area{flags.cylonFleet ? " (Mark VII vipers move two areas)" : ""}.</li>
           <li><strong>Attack</strong> a Cylon ship in the same area (roll on the table above).</li>
-          {flags.cylonFleet && <li><strong>Escort</strong> a civilian ship in its area to safety – shuffle it back into the unused civilian ships.</li>}
+          {flags.cylonFleet && <li><strong>Escort</strong> a civilian ship in its area to safety - shuffle it back into the unused civilian ships.</li>}
         </ul>
         <p className="small muted">
           A piloted viper is only activated by its pilot (as their action). Unmanned vipers are activated by e.g. Command or cards.

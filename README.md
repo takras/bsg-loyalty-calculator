@@ -6,16 +6,16 @@ A pure client-side app: no server, no login. State is kept in the browser's loca
 
 ## Sections
 
-- **Setup** – expansions, Exodus modules, ending and variants; pick characters in seat order
+- **Setup** - expansions, Exodus modules, ending and variants; pick characters in seat order
   (type balance and alternate versions are enforced). Shows the exact Loyalty deck, the deal,
   starting title holders and a board/component checklist.
-- **Titles** – Admiral / President / CAG lines of succession for the characters in play. Mark players
+- **Titles** - Admiral / President / CAG lines of succession for the characters in play. Mark players
   as in the Brig or revealed Cylon and titles pass down automatically; manual "give" for card effects.
-- **Combat** – die-roll hit table with ship silhouettes, filtered to your expansions.
-- **Crisis icons** – what each Cylon activation icon does, and when ships go to the Cylon Fleet board.
-- **Execution** – step-by-step procedure; choose human/Cylon and pick the replacement character.
-- **Quick rules** – Reckless, revealing, Sleeper Agent phase, jumps and other look-ups.
-- **Rulebook** – the full [unified BSG rulebook](https://jbiatek.github.io/BSGRulebook/rulebook.html),
+- **Combat** - die-roll hit table with ship silhouettes, filtered to your expansions.
+- **Crisis icons** - what each Cylon activation icon does, and when ships go to the Cylon Fleet board.
+- **Execution** - step-by-step procedure; choose human/Cylon and pick the replacement character.
+- **Quick rules** - Reckless, revealing, Sleeper Agent phase, jumps and other look-ups.
+- **Rulebook** - the full [unified BSG rulebook](https://jbiatek.github.io/BSGRulebook/rulebook.html),
   filtered to your setup and searchable.
 
 ## Website
@@ -42,7 +42,7 @@ npm run build    # static site in dist/
 ```
 
 `dist/` is plain static files with relative paths and hash routing, so it can be served from any
-web server or sub-folder – no rewrites needed.
+web server or sub-folder, no rewrites needed.
 
 ## Native apps (Capacitor)
 
@@ -67,7 +67,7 @@ npm run ios       # build web, sync, open Xcode (macOS only)
 - **Versions**: `versionName` = `package.json` version, `versionCode` = major·10000 + minor·100 + patch.
   Bump with `npm version patch` (or `minor`/`major`) before each store upload.
 - **iOS**: built in the cloud by GitHub Actions (**Build iOS app**, manual): unsigned check, simulator
-  build, or a signed TestFlight upload – no Mac needed. See [docs/ios-build.md](docs/ios-build.md) for
+  build, or a signed TestFlight upload, no Mac needed. See [docs/ios-build.md](docs/ios-build.md) for
   the secrets and the one-time App Store Connect setup.
   Team under Signing & Capabilities, then Product → Archive for App Store Connect.
 - After changing web code, run `npm run cap:sync` (or the scripts above) before building natively.
@@ -77,9 +77,9 @@ npm run ios       # build web, sync, open Xcode (macOS only)
 
 ## Content
 
-- `src/data/` – characters, lines of succession, combat table, attributions.
-- `src/logic/` – config rules (ported from the BSGRulebook option logic), loyalty deck, setup checklist, line-up checks.
-- `src/content/rulebook.md` – copy of `BSGRulebook/rulebook.md`; its images are in `public/rulebook/images/`.
+- `src/data/` - characters, lines of succession, combat table, attributions.
+- `src/logic/` - config rules (ported from the BSGRulebook option logic), loyalty deck, setup checklist, line-up checks.
+- `src/content/rulebook.md` - copy of `BSGRulebook/rulebook.md`; its images are in `public/rulebook/images/`.
 
 ## Assets
 
@@ -109,8 +109,8 @@ The scripts next to them turn these into the small files the app uses (committed
 | `node assets/extract-activation-icons.mjs` | `src/assets/icons/*.webp`, `src/assets/ships/centurion.webp` |
 | `node assets/build-qr-icons.mjs` | `src/assets/tokens/*.webp` (damage/trauma tokens, Activate Viper, Occupation Forces, civilian ship) |
 | `node assets/theme-rulebook-images.mjs` | rulebook images in `public/rulebook/images/` (reads `../BSGRulebook/images`) |
-| `node assets/raider-render.mjs` | `assets/raider-render.png` – the raider cut out of `assets/source/raider-render.webp` |
-| `node assets/raider-flat.mjs` | `assets/raider-flat.png` – that raider simplified to the crest's flat cream/olive style |
+| `node assets/raider-render.mjs` | `assets/raider-render.png` - the raider cut out of `assets/source/raider-render.webp` |
+| `node assets/raider-flat.mjs` | `assets/raider-flat.png` - that raider simplified to the crest's flat cream/olive style |
 | `npm run icons` | native app icons and splash screens (from `assets/emblem.mjs`, uses the flat raider) |
 
 ## Store graphics

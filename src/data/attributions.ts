@@ -37,7 +37,7 @@ export const gameCredits: Credit[] = [
 
 export const ruleCredits: Credit[] = [
   {
-    name: "BSG – The unified rulebook",
+    name: "BSG - The unified rulebook",
     detail: "By jbiatek. Embedded in the Rulebook tab, filtered by your setup; also the source for most rule summaries.",
     url: "https://jbiatek.github.io/BSGRulebook/rulebook.html",
   },

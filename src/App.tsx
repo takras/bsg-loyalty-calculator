@@ -68,7 +68,7 @@ export function App() {
           <button
             className="hud-btn"
             onClick={toggleTheme}
-            aria-label={`${THEME_LABEL[theme].name} theme – switch to ${THEME_LABEL[nextTheme(theme)].name}`}
+            aria-label={`${THEME_LABEL[theme].name} theme, switch to ${THEME_LABEL[nextTheme(theme)].name}`}
             title="Switch console theme"
           >
             {THEME_LABEL[theme].short}
@@ -124,7 +124,7 @@ export function App() {
       </main>
 
       <footer className="footer small muted">
-        Unofficial fan-made companion for Battlestar Galactica: The Board Game – not affiliated with Fantasy Flight Games. All data stays on this device.
+        Unofficial fan-made companion for Battlestar Galactica: The Board Game, not affiliated with Fantasy Flight Games. All data stays on this device.
       </footer>
     </div>
   );

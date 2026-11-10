@@ -70,7 +70,7 @@ const scenes = [
   },
   {
     id: "03-combat", state: playingState, route: "#/combat", theme: "cic",
-    title: "Every roll at a glance", sub: "The full combat table – tap a ship for the details",
+    title: "Every roll at a glance", sub: "The full combat table - tap a ship for the details",
     prepare: `[...document.querySelectorAll('.ship-row')].find(b => b.querySelector('.ship-name')?.textContent.trim() === 'Raider')?.click();`,
   },
   {
@@ -80,7 +80,7 @@ const scenes = [
   },
   {
     id: "05-execution", state: playingState, route: "#/execution/0", theme: "caprica",
-    title: "Executions made easy", sub: "Human or Cylon – it tells you what happens next",
+    title: "Executions made easy", sub: "Human or Cylon, it tells you what happens next",
     prepare: `[...document.querySelectorAll('button.choice')].find(b => b.textContent.startsWith('Human'))?.click();
               await new Promise(r => setTimeout(r, 200));
               document.querySelector('.human-card')?.scrollIntoView({block:'start'}); window.scrollBy(0,-110);`,
@@ -359,7 +359,7 @@ try {
     <div class="text">
       <h1>BSG<br>Companion</h1>
       <div class="rail"></div>
-      <p>Setup, titles, combat, crises and executions – at your fingertips.</p>
+      <p>Setup, titles, combat, crises and executions, at your fingertips.</p>
       <small>Unofficial fan-made helper for Battlestar Galactica: The Board Game</small>
     </div>
   </body></html>`);

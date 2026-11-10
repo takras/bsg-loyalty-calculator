@@ -50,7 +50,7 @@ export const targets: Target[] = [
     when: (f) => f.pegasus,
     rows: [{ bands: [r(7, 8, "destroy")] }],
     notes: [
-      "Only destroyed by a die roll of 7–8 (modifiers count, e.g. Strategic Planning).",
+      "Only destroyed by a die roll of 7-8 (modifiers count, e.g. Strategic Planning).",
       "Cannot be chosen for “destroy a raider” effects without a roll (incl. Kat’s Hot Shot).",
     ],
   },
@@ -166,7 +166,7 @@ export const targets: Target[] = [
     name: "Civilian Ship",
     ship: "civilian",
     side: "colonial",
-    rows: [{ by: "Raider", byShip: "raider", bands: [], noRoll: "Always destroyed – no die roll" }],
+    rows: [{ by: "Raider", byShip: "raider", bands: [], noRoll: "Always destroyed, no die roll" }],
     notes: ["Flip the tile and lose the resources shown."],
   },
   {

@@ -108,13 +108,13 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
               label="Allow characters from expansions not in play"
               checked={config.allowAllCharacters}
               onChange={(v) => set({ allowAllCharacters: v })}
-              hint="House rule – some of their abilities need their expansion's components"
+              hint="House rule - some of their abilities need their expansion's components"
             />
             <Toggle
               label="Ignore character type balance"
               checked={config.ignoreTypeBalance}
               onChange={(v) => set({ ignoreTypeBalance: v })}
-              hint="House rule – Political, Military and Pilot don't have to be chosen evenly"
+              hint="House rule - Political, Military and Pilot don't have to be chosen evenly"
             />
             <Toggle label="Demetrius & Missions regardless of ending" checked={config.forceDemetrius} disabled={!a.forceDemetrius} onChange={(v) => set({ forceDemetrius: v })} />
           </details>
@@ -221,7 +221,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
               )}
               <li>Shuffle each pile and build the deck above. Unused Cylon cards leave the game unseen.</li>
               <li>
-                Keep the remaining “Not a Cylon” pile separate{flags.execution ? " – executions and Personal Goals draw from it" : ""}.
+                Keep the remaining “Not a Cylon” pile separate{flags.execution ? " - executions and Personal Goals draw from it" : ""}.
               </li>
               <li>
                 Deal: {loyalty.firstDeal.join(", ")}.
@@ -252,7 +252,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
               return (
                 <div key={t} className={`title-chip title-${t}`}>
                   <span className="title-name">{TITLE_LABEL[t]}</span>
-                  <span>{p ? characterById[p.characterId].short : "—"}</span>
+                  <span>{p ? characterById[p.characterId].short : "-"}</span>
                 </div>
               );
             })}
@@ -280,7 +280,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
             {players.length === 0 ? (
               <span className="muted">Enter the chosen characters</span>
             ) : errors.length > 0 ? (
-              <span className="warn">{errors.length === 1 ? errors[0].text : `${errors.length} rule conflicts – see Characters`}</span>
+              <span className="warn">{errors.length === 1 ? errors[0].text : `${errors.length} rule conflicts, see Characters`}</span>
             ) : !loyalty.valid ? (
               <span className="warn">{loyalty.errors[0]}</span>
             ) : (
