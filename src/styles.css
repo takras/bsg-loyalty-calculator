@@ -346,6 +346,14 @@ button.small { font-size: 1rem; min-height: 32px; padding: 0.15rem 0.7rem; }
 .row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .footer { margin-top: 28px; padding-top: 10px; border-top: 2px solid var(--line); }
+/* website only: app store links, a compact row in the header under the title */
+.store-links { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 8px; }
+.store-btn {
+  --c: 6px; --fill: var(--pill); --edge: var(--btn-edge, var(--pill));
+  display: inline-block; padding: 0.15rem 0.7rem; text-decoration: none; color: var(--pill-ink);
+  font-family: var(--font-label); font-size: 0.95rem; letter-spacing: 0.06em; text-transform: uppercase;
+}
+.store-btn:hover { --edge: var(--chrome-hi); }
 
 /* ---------- badges ---------- */
 .badge {

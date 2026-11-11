@@ -13,6 +13,25 @@ export interface Credit {
 /** Public website (GitHub Pages, custom domain). Absolute so native apps open it in the browser. */
 export const SITE_URL = "https://bsg.takras.net/";
 export const PRIVACY_URL = `${SITE_URL}privacy.html`;
+export const CONTACT_EMAIL = "takras@takras.net";
+export const APP_STORE_URL = "https://apps.apple.com/no/app/bsg-companion/id6825431292";
+
+/** Opens the visitor's email program with a request to join the Android closed test (there is no backend). */
+export const ANDROID_TESTER_MAILTO = `mailto:${CONTACT_EMAIL}?${new URLSearchParams({
+  subject: "BSG Companion - Android tester request",
+  body: [
+    "Hi,",
+    "",
+    "I'd like to join the closed test of BSG Companion on Android.",
+    "",
+    "Google account email (the one I use on Google Play): ",
+    "Android device (optional): ",
+    "",
+    "Thanks!",
+  ].join("\n"),
+})
+  .toString()
+  .replace(/\+/g, "%20")}`;
 
 export const DISCLAIMER =
   "BSG Companion is an unofficial fan project. It is not affiliated with, endorsed or sponsored by Fantasy Flight Games, Universal or NBCUniversal.";

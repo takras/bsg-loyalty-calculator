@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from "react";
+import { Capacitor } from "@capacitor/core";
 import { NavIcon } from "./components/NavIcon";
+import { ANDROID_TESTER_MAILTO, APP_STORE_URL } from "./data/attributions";
 import { ENDING_LABEL } from "./logic/config";
 import { nextTheme, THEME_LABEL, useTheme } from "./state/theme";
 import { useStore } from "./state/store";
@@ -85,6 +87,17 @@ export function App() {
             Reset
           </button>
         </div>
+        {/* the website points to the apps; inside the apps this is pointless */}
+        {!Capacitor.isNativePlatform() && (
+          <div className="store-links">
+            <a className="framed store-btn" href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
+              App Store
+            </a>
+            <a className="framed store-btn" href={ANDROID_TESTER_MAILTO}>
+              Join Android test
+            </a>
+          </div>
+        )}
         <div className="hud-rail" />
         <nav className="dock" aria-label="Sections">
           {DOCK.map((t) => (
