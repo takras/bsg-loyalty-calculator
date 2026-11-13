@@ -1,3 +1,5 @@
+import { t } from "../i18n";
+
 /** Console-style on/off row: label on the left, ONLINE/OFFLINE pill on the right. */
 export function Toggle({
   label,
@@ -5,8 +7,8 @@ export function Toggle({
   disabled,
   onChange,
   hint,
-  on = "On",
-  off = "Off",
+  on = t("toggle.on"),
+  off = t("toggle.off"),
 }: {
   label: string;
   checked: boolean;

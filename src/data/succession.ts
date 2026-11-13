@@ -1,12 +1,10 @@
 // Official lines of succession (covers base game + Pegasus + Exodus + Daybreak).
 // Cylon Leaders never hold titles, so they are not listed.
+import { labels } from "../i18n";
+
 export type TitleId = "president" | "admiral" | "cag";
 
-export const TITLE_LABEL: Record<TitleId, string> = {
-  president: "President",
-  admiral: "Admiral",
-  cag: "CAG",
-};
+export const TITLE_LABEL = labels(["president", "admiral", "cag"] as const, "title");
 
 export const succession: Record<TitleId, string[]> = {
   admiral: [

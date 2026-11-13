@@ -1,4 +1,5 @@
 import type { ShipId } from "../components/ShipIcon";
+import { t } from "../i18n";
 import type { Flags } from "../logic/config";
 
 export type Effect = "miss" | "damage" | "destroy" | "special";
@@ -32,146 +33,143 @@ export interface Target {
 }
 
 const r = (min: number, max: number, effect: Effect, label?: string): Band => ({ min, max, effect, label });
+// combat.<target>.* and ship.<ship> keys
+const c = (key: string) => t(`combat.${key}`);
+const ship = (id: string) => t(`ship.${id}`);
 
-export const targets: Target[] = [
+/** The combat table; built on each call so the text follows the current language. */
+export const targets = (): Target[] => [
   {
     id: "raider",
-    name: "Raider",
+    name: ship("raider"),
     ship: "raider",
     side: "cylon",
     rows: [{ bands: [r(3, 8, "destroy")] }],
-    notes: ["Viper, assault raptor or Galactica (Weapons Control) all use the same roll."],
+    notes: [c("raider.note1")],
   },
   {
     id: "scar",
-    name: "Scar",
+    name: ship("scar"),
     ship: "scar",
     side: "cylon",
     when: (f) => f.pegasus,
     rows: [{ bands: [r(7, 8, "destroy")] }],
-    notes: [
-      "Only destroyed by a die roll of 7-8 (modifiers count, e.g. Strategic Planning).",
-      "Cannot be chosen for “destroy a raider” effects without a roll (incl. Kat’s Hot Shot).",
-    ],
+    notes: [c("scar.note1"), c("scar.note2")],
   },
   {
     id: "heavy",
-    name: "Heavy Raider",
+    name: ship("heavy"),
     ship: "heavy",
     side: "cylon",
     rows: [{ bands: [r(7, 8, "destroy")] }],
   },
   {
     id: "centurion",
-    name: "Centurion",
+    name: ship("centurion"),
     ship: "centurion",
     side: "cylon",
     rows: [{ bands: [r(7, 8, "destroy")] }],
-    notes: ["Centurions do not push each other on the Boarding Party track."],
+    notes: [c("centurion.note1")],
   },
   {
     id: "basestar",
-    name: "Basestar",
+    name: ship("basestar"),
     ship: "basestar",
     side: "cylon",
     rows: [
-      { by: "Viper", byShip: "viper", bands: [r(8, 8, "damage")] },
-      { by: "Assault raptor", byShip: "assault", bands: [r(7, 8, "damage")], when: (f) => f.daybreak },
-      { by: "Galactica", byShip: "galactica", bands: [r(5, 8, "damage")] },
+      { by: ship("viper"), byShip: "viper", bands: [r(8, 8, "damage")] },
+      { by: ship("assaultRaptor"), byShip: "assault", bands: [r(7, 8, "damage")], when: (f) => f.daybreak },
+      { by: ship("galactica"), byShip: "galactica", bands: [r(5, 8, "damage")] },
     ],
-    notes: [
-      "Destroyed at 3 damage. Draw a damage token per hit (Critical Hit counts as 2).",
-      "Structural Damage token: +2 to rolls attacking this basestar.",
-    ],
+    notes: [c("basestar.note1"), c("basestar.note2")],
   },
   {
     id: "nuke",
-    name: "Nuke",
+    name: ship("nuke"),
     ship: "nuke",
     side: "cylon",
     rows: [
       {
-        by: "Targeted with a nuke",
+        by: c("nuke.targeted"),
         when: (f) => !f.cylonFleet,
-        bands: [r(1, 2, "damage", "Damaged twice"), r(3, 6, "destroy", "Destroyed"), r(7, 8, "destroy", "Destroyed + 3 raiders in area")],
+        bands: [
+          r(1, 2, "damage", c("nuke.damagedTwice")),
+          r(3, 6, "destroy", c("nuke.destroyed")),
+          r(7, 8, "destroy", c("nuke.destroyedRaiders")),
+        ],
       },
       {
-        by: "Attack a space area with a nuke",
+        by: c("nuke.area"),
         when: (f) => f.cylonFleet,
         bands: [
-          r(1, 2, "damage", "Damage a basestar twice"),
-          r(3, 6, "destroy", "Destroy a basestar"),
-          r(7, 7, "destroy", "Destroy a basestar + 3 raiders"),
-          r(8, 8, "destroy", "Destroy every ship in area"),
+          r(1, 2, "damage", c("nuke.area.damageTwice")),
+          r(3, 6, "destroy", c("nuke.area.destroy")),
+          r(7, 7, "destroy", c("nuke.area.destroyRaiders")),
+          r(8, 8, "destroy", c("nuke.area.destroyAll")),
         ],
       },
     ],
-    notes: [
-      "Admiral’s title card action; the Admiral starts with 2 nukes.",
-    ],
+    notes: [c("nuke.note1")],
   },
   {
     id: "galactica",
-    name: "Galactica",
+    name: ship("galactica"),
     ship: "galactica",
     side: "colonial",
     rows: [
-      { by: "Raider", byShip: "raider", bands: [r(8, 8, "damage")] },
-      { by: "Basestar", byShip: "basestar", bands: [r(4, 8, "damage")] },
+      { by: ship("raider"), byShip: "raider", bands: [r(8, 8, "damage")] },
+      { by: ship("basestar"), byShip: "basestar", bands: [r(4, 8, "damage")] },
     ],
   },
   {
     id: "pegasus",
-    name: "Pegasus",
+    name: ship("pegasus"),
     ship: "pegasus",
     side: "colonial",
     when: (f) => f.pegasus,
     rows: [
-      { by: "Raider", byShip: "raider", bands: [r(8, 8, "damage")] },
-      { by: "Basestar", byShip: "basestar", bands: [r(4, 8, "damage")] },
+      { by: ship("raider"), byShip: "raider", bands: [r(8, 8, "damage")] },
+      { by: ship("basestar"), byShip: "basestar", bands: [r(4, 8, "damage")] },
     ],
-    notes: [
-      "When Galactica is damaged, the current player may damage Pegasus instead.",
-      "Destroyed when all 4 locations are damaged; characters aboard go to Sickbay.",
-    ],
+    notes: [c("pegasus.note1"), c("pegasus.note2")],
   },
   {
     id: "viper",
-    name: "Viper Mk II",
+    name: ship("viperMk2"),
     ship: "viper",
     side: "colonial",
-    rows: [{ by: "Raider", byShip: "raider", bands: [r(5, 7, "damage"), r(8, 8, "destroy")] }],
-    notes: ["Damaged → Damaged Vipers box. Pilot goes to Sickbay if damaged or destroyed."],
+    rows: [{ by: ship("raider"), byShip: "raider", bands: [r(5, 7, "damage"), r(8, 8, "destroy")] }],
+    notes: [c("viper.note1")],
   },
   {
     id: "viper7",
-    name: "Viper Mk VII",
+    name: ship("viperMk7"),
     ship: "viper7",
     side: "colonial",
     when: (f) => f.cylonFleet,
-    rows: [{ by: "Raider", byShip: "raider", bands: [r(6, 7, "damage"), r(8, 8, "destroy")] }],
-    notes: ["Moves 2 space areas instead of 1. Starts the game damaged."],
+    rows: [{ by: ship("raider"), byShip: "raider", bands: [r(6, 7, "damage"), r(8, 8, "destroy")] }],
+    notes: [c("viper7.note1")],
   },
   {
     id: "assault",
-    name: "Assault Raptor",
+    name: ship("assaultRaptorTitle"),
     ship: "assault",
     side: "colonial",
     when: (f) => f.daybreak,
-    rows: [{ by: "Raider", byShip: "raider", bands: [r(7, 8, "destroy")] }],
-    notes: ["Never damaged: “damage a viper” on an assault raptor destroys it.", "Cannot be risked."],
+    rows: [{ by: ship("raider"), byShip: "raider", bands: [r(7, 8, "destroy")] }],
+    notes: [c("assault.note1"), c("assault.note2")],
   },
   {
     id: "civilian",
-    name: "Civilian Ship",
+    name: ship("civilian"),
     ship: "civilian",
     side: "colonial",
-    rows: [{ by: "Raider", byShip: "raider", bands: [], noRoll: "Always destroyed, no die roll" }],
-    notes: ["Flip the tile and lose the resources shown."],
+    rows: [{ by: ship("raider"), byShip: "raider", bands: [], noRoll: c("civilian.noRoll") }],
+    notes: [c("civilian.note1")],
   },
   {
     id: "occupation",
-    name: "Occupation Force",
+    name: ship("occupation"),
     ship: "occupation",
     side: "newcaprica",
     when: (f) => f.ending === "newcaprica",
@@ -179,11 +177,11 @@ export const targets: Target[] = [
   },
   {
     id: "detain",
-    name: "Detain a Human",
+    name: c("detain.name"),
     ship: "human",
     side: "newcaprica",
     when: (f) => f.ending === "newcaprica",
-    rows: [{ bands: [r(1, 3, "special", "Detention"), r(4, 7, "special", "Medical Center")] }],
+    rows: [{ bands: [r(1, 3, "special", c("detain.detention")), r(4, 7, "special", c("detain.medical"))] }],
   },
 ];
 
@@ -193,32 +191,31 @@ export interface Token {
   text: string;
 }
 
+// token.<id>.name / token.<id>.text
+const token = (id: string, withText = true): Token => ({
+  id,
+  name: t(`token.${id}.name`),
+  text: withText ? t(`token.${id}.text`) : "",
+});
+
 export const basestarTokens = (ionian: boolean): Token[] => [
-  { id: "token-critical", name: "Critical Hit", text: "Counts as 2 damage." },
-  { id: "token-hangar", name: "Disabled Hangar", text: "Cannot launch raiders or heavy raiders." },
-  { id: "token-weapons", name: "Disabled Weapons", text: "Cannot fire on Galactica." },
-  { id: "token-structural", name: "Structural Damage", text: "+2 to rolls attacking it." },
-  ...(ionian
-    ? [
-        { id: "token-collateral", name: "Collateral Damage", text: "When added: destroy 3 raiders in the area." },
-        { id: "token-personnel", name: "Damage to Personnel", text: "When added: each Cylon player draws 2 Trauma." },
-      ]
-    : []),
+  token("token-critical"),
+  token("token-hangar"),
+  token("token-weapons"),
+  token("token-structural"),
+  ...(ionian ? [token("token-collateral"), token("token-personnel")] : []),
 ];
 
 /** Galactica location damage tokens (the remaining Galactica tokens show a resource: lose 1 of it). */
-export const galacticaTokens: Token[] = [
-  { id: "galactica-ftl-control", name: "FTL Control", text: "" },
-  { id: "galactica-weapons-control", name: "Weapons Control", text: "" },
-  { id: "galactica-command", name: "Command", text: "" },
-  { id: "galactica-admirals-quarters", name: "Admiral’s Quarters", text: "" },
-  { id: "galactica-hangar-deck", name: "Hangar Deck", text: "" },
-  { id: "galactica-armory", name: "Armory", text: "" },
-];
+export const galacticaTokens = (): Token[] =>
+  [
+    "galactica-ftl-control",
+    "galactica-weapons-control",
+    "galactica-command",
+    "galactica-admirals-quarters",
+    "galactica-hangar-deck",
+    "galactica-armory",
+  ].map((id) => token(id, false));
 
-export const pegasusTokens: Token[] = [
-  { id: "pegasus-cic", name: "Pegasus CIC", text: "" },
-  { id: "pegasus-airlock", name: "Airlock", text: "" },
-  { id: "pegasus-main-batteries", name: "Main Batteries", text: "" },
-  { id: "pegasus-engine-room", name: "Engine Room", text: "" },
-];
+export const pegasusTokens = (): Token[] =>
+  ["pegasus-cic", "pegasus-airlock", "pegasus-main-batteries", "pegasus-engine-room"].map((id) => token(id, false));

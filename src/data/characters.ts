@@ -1,3 +1,5 @@
+import { labels, t } from "../i18n";
+
 export type Box = "core" | "pegasus" | "exodus" | "daybreak";
 export type CharacterType = "political" | "military" | "pilot" | "support" | "cylonleader";
 
@@ -17,20 +19,12 @@ export interface Character {
   notes?: string[];
 }
 
-export const TYPE_LABEL: Record<CharacterType, string> = {
-  political: "Political Leader",
-  military: "Military Leader",
-  pilot: "Pilot",
-  support: "Support",
-  cylonleader: "Cylon Leader",
-};
-
-export const BOX_LABEL: Record<Box, string> = {
-  core: "Base game",
-  pegasus: "Pegasus",
-  exodus: "Exodus",
-  daybreak: "Daybreak",
-};
+const TYPES = ["political", "military", "pilot", "support", "cylonleader"] as const;
+/** Full type name, e.g. "Political Leader". */
+export const TYPE_LABEL = labels(TYPES, "type");
+/** Short type name for suffixes and tiles, e.g. "Political". */
+export const TYPE_SHORT = labels(TYPES, "typeShort");
+export const BOX_LABEL = labels(["core", "pegasus", "exodus", "daybreak"] as const, "box");
 
 export const characters: Character[] = [
   // Base game
@@ -128,6 +122,23 @@ export const characters: Character[] = [
   { id: "simon", name: "Simon O’Neill", short: "Simon O’Neill", type: "cylonleader", box: "daybreak" },
 ];
 
+// Translated text: the "(Type)" suffix of duplicate names, and the notes (the English above is the source text,
+// mirrored in i18n/en.json as character.<id>.noteN).
+for (const c of characters) {
+  const suffixed = /\s*\(.*\)$/.test(c.short);
+  if (suffixed) {
+    const base = c.short.replace(/\s*\(.*\)$/, "");
+    Object.defineProperty(c, "short", { get: () => `${base} (${TYPE_SHORT[c.type]})`, enumerable: true });
+  }
+  if (c.notes) {
+    const count = c.notes.length;
+    Object.defineProperty(c, "notes", {
+      get: () => Array.from({ length: count }, (_, i) => t(`character.${c.id}.note${i + 1}`)),
+      enumerable: true,
+    });
+  }
+}
+
 export const characterById = Object.fromEntries(characters.map((c) => [c.id, c])) as Record<
   string,
   Character
@@ -135,7 +146,7 @@ export const characterById = Object.fromEntries(characters.map((c) => [c.id, c])
 
 export function displayName(c: Character): string {
   if (!c.version) return c.name;
-  return `${c.name} (${c.version === "original" ? "orig." : "alt."} ${TYPE_LABEL[c.type].split(" ")[0]})`;
+  return `${c.name} (${t(c.version === "original" ? "character.orig" : "character.alt")} ${TYPE_SHORT[c.type]})`;
 }
 
 /** Name for the standee name plate: the display name without the "(Type)" suffix. */

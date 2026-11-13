@@ -722,8 +722,8 @@ button.xs, .segmented.xs button { font-size: 0.95rem; min-height: 28px; padding:
 .collapsible > summary .badge.ghost { --fill: var(--chrome); --edge: var(--accent-ink); color: var(--accent-ink); }
 .collapsible > summary :is(h2, h3) { min-width: 0; flex-wrap: wrap; }
 .collapse-hint { white-space: nowrap; flex: 0 0 auto; align-self: center; margin-left: auto; font-family: var(--font-label); font-size: 1.15rem; color: var(--muted); text-transform: uppercase; }
-.collapse-hint::after { content: "Show +"; }
-.collapsible[open] .collapse-hint::after { content: "Hide −"; }
+.collapse-hint .hint-hide, .collapsible[open] .collapse-hint .hint-show { display: none; }
+.collapsible[open] .collapse-hint .hint-hide { display: inline; }
 .collapsible-body { margin-top: 10px; }
 .card:has(> .collapsible:not([open])) { padding-bottom: 0; }
 .card h3.sub { margin-top: 12px; color: var(--muted); font-size: 1.1rem; }

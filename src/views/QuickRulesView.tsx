@@ -4,6 +4,9 @@ import { Collapsible } from "../components/Collapsible";
 import { GameIcon } from "../components/GameIcon";
 import { CylonTurn, TraumaTokens } from "../components/QuickRuleBodies";
 import { RecklessSummary } from "../components/RecklessRule";
+import { BOX_LABEL } from "../data/characters";
+import { t } from "../i18n";
+import { endingLabel } from "../logic/config";
 import { useStore } from "../state/store";
 
 interface Rule {
@@ -15,6 +18,9 @@ interface Rule {
   body: ReactNode;
 }
 
+// quick.<rule>.<item>
+const q = (key: string) => t(`quick.${key}`);
+
 export function QuickRulesView() {
   const { flags, state } = useStore();
   const { config } = state;
@@ -22,169 +28,157 @@ export function QuickRulesView() {
   const rules: Rule[] = [
     {
       id: "reckless",
-      title: "Reckless",
-      tag: config.daybreak ? "Pegasus + Daybreak" : "Pegasus",
+      title: q("reckless.title"),
+      tag: config.daybreak ? `${BOX_LABEL.pegasus} + ${BOX_LABEL.daybreak}` : BOX_LABEL.pegasus,
       show: config.pegasus,
       body: (
         <>
           <RecklessSummary />
-          <p className="small">Only one Reckless card per check. Not combinable with “Restore Order” either way.</p>
+          <p className="small">{q("reckless.onePerCheck")}</p>
         </>
       ),
     },
     {
       id: "sca",
-      title: "Skill Check Abilities",
+      title: q("sca.title"),
       icon: <GameIcon id="skill-check-ability" alt="" className="rule-icon" />,
       show: flags.expansion,
       body: (
         <ul>
-          <li>Cards with the Skill Check Ability icon only trigger when revealed in a check. Duplicates by name resolve once.</li>
-          <li>Current player picks the order. A Crisis “consequence” (icon outcome) triggers if at least one such card was played.</li>
-          {flags.treachery && <li>Human players can’t use Treachery text otherwise; anyone may put them in checks. Treachery always counts negative.</li>}
+          <li>{q("sca.trigger")}</li>
+          <li>{q("sca.order")}</li>
+          {flags.treachery && <li>{q("sca.treachery")}</li>}
         </ul>
       ),
     },
     {
       id: "reveal",
-      title: "Revealing as a Cylon",
+      title: q("reveal.title"),
       show: true,
       body: (
         <ol>
-          <li>Reveal as your action and do the card’s action (not if in the Brig{flags.execution ? " or executed" : ""}).</li>
-          <li>Discard Skill cards down to 3; discard attached Quorum cards{config.daybreak ? ", Mutiny cards, Miracle token" : ""}.</li>
-          <li>Lose titles down the lines of succession.</li>
-          <li>Move to the Resurrection Ship. Draw a Super Crisis card.</li>
-          {flags.overlay ? (
-            <li>Distance 6 or less: pass your other Loyalty cards face down to one human player.</li>
-          ) : (
-            <li>Keep other Loyalty cards hidden; pass them on from the Resurrection Ship.</li>
-          )}
-          {config.daybreak && <li>If you were the Mutineer, give the Mutineer card to a human player.</li>}
-          <li>If you revealed on your own turn, your turn ends, no Crisis.</li>
-          <li>From now on, play Cylon turns (see “Cylon player’s turn”).</li>
+          <li>{q(flags.execution ? "reveal.actionExecution" : "reveal.action")}</li>
+          <li>{q(config.daybreak ? "reveal.discardDaybreak" : "reveal.discard")}</li>
+          <li>{q("reveal.titles")}</li>
+          <li>{q("reveal.resurrection")}</li>
+          <li>{q(flags.overlay ? "reveal.loyaltyOverlay" : "reveal.loyalty")}</li>
+          {config.daybreak && <li>{q("reveal.mutineer")}</li>}
+          <li>{q("reveal.ownTurn")}</li>
+          <li>{q("reveal.fromNow")}</li>
         </ol>
       ),
     },
     {
       id: "cylon-turn",
-      title: "Cylon player’s turn",
+      title: q("cylonTurn.title"),
       show: true,
       body: <CylonTurn />,
     },
     {
       id: "sleeper",
-      title: "Sleeper Agent phase",
+      title: q("sleeper.title"),
       show: true,
       body: (
         <ul>
-          <li>At the objective card’s distance: deal 1 Loyalty card to every player{flags.cylonLeader ? " except the Cylon Leader" : ""}, revealed Cylons included. Boomer gets 2.</li>
-          {flags.overlay ? (
-            <li>Revealed Cylons look at theirs and pass them face down to one human.</li>
-          ) : (
-            <li>Revealed Cylons keep theirs secret (can pass them via the Resurrection Ship).</li>
-          )}
-          {flags.motive && flags.cylonLeader && <li>The Cylon Leader gets 2 more Motive cards.</li>}
-          {config.daybreak && <li>Mutineer still in the deck afterwards → current player picks a human to draw 1 more.</li>}
+          <li>{q(flags.cylonLeader ? "sleeper.dealLeader" : "sleeper.deal")}</li>
+          <li>{q(flags.overlay ? "sleeper.revealedOverlay" : "sleeper.revealed")}</li>
+          {flags.motive && flags.cylonLeader && <li>{q("sleeper.motives")}</li>}
+          {config.daybreak && <li>{q("sleeper.mutineer")}</li>}
         </ul>
       ),
     },
     {
       id: "brig",
-      title: "Brig & Sickbay",
+      title: q("brig.title"),
       show: true,
       body: (
         <ul>
-          <li>Brig: no moving out unless the Brig check is passed or an effect names the Brig. Max 1 card into checks.</li>
-          <li>When choosing who goes to the Brig/Sickbay you must pick someone who can actually move there, if possible.</li>
-          <li>Admiral{config.cylonFleet ? "/CAG" : ""} sent to the Brig loses the title.</li>
-          {flags.pegasus && <li>Movement actions may still be used in the Brig.</li>}
+          <li>{q("brig.noMoving")}</li>
+          <li>{q("brig.choose")}</li>
+          <li>{q(config.cylonFleet ? "brig.adminCag" : "brig.admiral")}</li>
+          {flags.pegasus && <li>{q("brig.movement")}</li>}
         </ul>
       ),
     },
     {
       id: "trauma",
-      title: "Trauma tokens",
-      tag: config.ending === "ioniannebula" ? "Ionian Nebula" : "Allies for All Seasons",
+      title: q("trauma.title"),
+      tag: config.ending === "ioniannebula" ? endingLabel("ioniannebula") : t("setup.variant.allySeasons"),
       show: flags.allies,
       body: <TraumaTokens />,
     },
     {
       id: "miracle",
-      title: "Miracle tokens",
-      tag: "Daybreak",
+      title: q("miracle.title"),
+      tag: BOX_LABEL.daybreak,
       show: config.daybreak,
       body: (
         <ul>
-          <li>Once-per-game abilities now cost 1 Miracle token and can be used again later.</li>
-          <li>Max 1 token per player (support Baltar: 3). Tokens can’t be traded.</li>
+          <li>{q("miracle.cost")}</li>
+          <li>{q("miracle.limit")}</li>
         </ul>
       ),
     },
     {
       id: "mutiny",
-      title: "Mutiny cards",
-      tag: "Daybreak",
+      title: q("mutiny.title"),
+      tag: BOX_LABEL.daybreak,
       show: config.daybreak,
       body: (
         <ul>
-          <li>Limit 1 (the Mutineer: 2). Going over: go to the Brig, then discard down to the limit.</li>
-          <li>Revealed Cylons can’t hold, play or be targeted to draw Mutiny cards.</li>
-          <li>Max one Mutiny card per turn from choosing to discard Treachery.</li>
+          <li>{q("mutiny.limit")}</li>
+          <li>{q("mutiny.cylons")}</li>
+          <li>{q("mutiny.perTurn")}</li>
         </ul>
       ),
     },
     {
       id: "infiltrate",
-      title: "Infiltrating",
+      title: q("infiltrate.title"),
       show: flags.infiltrator,
       body: (
         <ul>
-          <li>Action at “Human Fleet”: become an Infiltrator, treated as a human player.</li>
-          <li>Draw 1 extra Skill card; max 2 cards into checks; cannot hold titles.</li>
-          <li>Action: end Infiltration and move to the Resurrection Ship (discard to 3 if leaving the Brig).</li>
+          <li>{q("infiltrate.become")}</li>
+          <li>{q("infiltrate.limits")}</li>
+          <li>{q("infiltrate.end")}</li>
         </ul>
       ),
     },
     {
       id: "nukes",
-      title: "Nukes",
+      title: q("nukes.title"),
       show: true,
       body: (
         <ul>
-          <li>Admiral starts with 2. {flags.exodus ? "Used nukes are discarded and can be regained (3rd token in the box)." : "Used nukes are removed from the game."}</li>
-          <li>{flags.cylonFleet ? "Targets a whole space area: 1-2 basestar damaged twice · 3-6 basestar destroyed · 7 + 3 raiders · 8 everything." : "1-2 damaged twice · 3-6 destroyed · 7-8 destroyed + 3 raiders."}</li>
+          <li>{q(flags.exodus ? "nukes.startExodus" : "nukes.start")}</li>
+          <li>{q(flags.cylonFleet ? "nukes.rollFleet" : "nukes.roll")}</li>
         </ul>
       ),
     },
     {
       id: "jump",
-      title: "Jumping",
+      title: q("jump.title"),
       show: true,
       body: (
         <ol>
-          <li>FTL Control: roll first; 6 or less → lose the population on the current jump space.</li>
-          {flags.demetrius && <li>Follow the Active Mission space instructions.</li>}
-          {flags.cylonFleet ? (
-            <li>Cylon ships to the matching fleet-board areas; vipers to the Reserves; civilians stay.</li>
-          ) : (
-            <li>Remove all ships from the board (Centurions stay); pilots to the Hangar Deck.</li>
-          )}
-          {config.daybreak && <li>Assault raptors may stay in space.</li>}
-          <li>Admiral draws 2 Destinations, picks 1 secretly, the other goes to the bottom.</li>
-          <li>Resolve it, add the distance, check the objective card, reset the jump track.</li>
+          <li>{q("jump.ftl")}</li>
+          {flags.demetrius && <li>{q("jump.mission")}</li>}
+          <li>{q(flags.cylonFleet ? "jump.shipsFleet" : "jump.ships")}</li>
+          {config.daybreak && <li>{q("jump.assault")}</li>}
+          <li>{q("jump.destinations")}</li>
+          <li>{q("jump.resolve")}</li>
         </ol>
       ),
     },
     {
       id: "limits",
-      title: "Hand limits & secrecy",
+      title: q("limits.title"),
       show: true,
       body: (
         <ul>
-          <li>End of every turn: discard down to 10 Skill cards{flags.expansion ? " (and 10 Quorum cards for the President)" : ""}.</li>
-          <li>No exact card strengths or types in talk; “a lot/a little”, “good/bad” are fine.</li>
-          <li>Resource at 0: humans have until the end of the turn to fix it.</li>
+          <li>{q(flags.expansion ? "limits.handQuorum" : "limits.hand")}</li>
+          <li>{q("limits.talk")}</li>
+          <li>{q("limits.zero")}</li>
         </ul>
       ),
     },

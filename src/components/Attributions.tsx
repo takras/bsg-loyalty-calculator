@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { t } from "../i18n";
 import {
-  DISCLAIMER,
+  disclaimer,
   PRIVACY_URL,
   fontCredits,
   gameCredits,
@@ -10,6 +11,7 @@ import {
   type Credit,
 } from "../data/attributions";
 import { Collapsible } from "./Collapsible";
+import { AppVersion } from "./AppVersion";
 
 function CreditList({ title, items }: { title: string; items: Credit[] }) {
   return (
@@ -56,9 +58,9 @@ function LicenceTexts() {
   return (
     <p className="small">
       <button className="xs" onClick={load} disabled={state === "loading"}>
-        {state === "loading" ? "Loading…" : "Show full licence texts"}
+        {t(state === "loading" ? "about.licences.loading" : "about.licences.show")}
       </button>
-      {state === "error" && <span className="muted"> Couldn't load the licence texts.</span>}
+      {state === "error" && <span className="muted"> {t("about.licences.error")}</span>}
     </p>
   );
 }
@@ -67,24 +69,22 @@ function LicenceTexts() {
 export function Attributions() {
   return (
     <article className="card rule attributions" id="about">
-      <Collapsible level={3} title="About & attributions">
-        <p className="disclaimer">{DISCLAIMER}</p>
+      <Collapsible level={3} title={t("about.title")}>
+        <AppVersion />
+        <p className="disclaimer">{disclaimer()}</p>
         <p className="small">
           <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer">
-            Privacy policy
+            {t("about.privacy")}
           </a>{" "}
-          - the app collects no personal data; your game is only saved on this device.
+          {t("about.privacyNote")}
         </p>
-        <CreditList title="The game" items={gameCredits} />
-        <CreditList title="Rules sources" items={ruleCredits} />
-        <CreditList title="Software" items={softwareCredits} />
-        <CreditList title="Fonts" items={fontCredits} />
-        <CreditList title="This project" items={originalCredits} />
-        <h4 className="credit-head">Licence texts</h4>
-        <p className="credit-detail">
-          The open-source software and fonts bundled in this app are distributed under the MIT and SIL Open Font
-          licences; their full texts are included with the app.
-        </p>
+        <CreditList title={t("about.game")} items={gameCredits()} />
+        <CreditList title={t("about.rules")} items={ruleCredits()} />
+        <CreditList title={t("about.software")} items={softwareCredits()} />
+        <CreditList title={t("about.fonts")} items={fontCredits()} />
+        <CreditList title={t("about.project")} items={originalCredits()} />
+        <h4 className="credit-head">{t("about.licences")}</h4>
+        <p className="credit-detail">{t("about.licencesNote")}</p>
         <LicenceTexts />
       </Collapsible>
     </article>

@@ -1,8 +1,9 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { NavIcon } from "./components/NavIcon";
 import { ANDROID_TESTER_MAILTO, APP_STORE_URL } from "./data/attributions";
-import { ENDING_LABEL } from "./logic/config";
+import { getLanguage, LANGUAGE_NAME, LANGUAGES, setLanguage, t } from "./i18n";
+import { endingLabel } from "./logic/config";
 import { nextTheme, THEME_LABEL, useTheme } from "./state/theme";
 import { useStore } from "./state/store";
 import { CombatView } from "./views/CombatView";
@@ -15,14 +16,7 @@ import { TitlesView } from "./views/TitlesView";
 // The rulebook pulls in marked + ~150 KB of text; load it only when opened.
 const RulebookView = lazy(() => import("./views/RulebookView").then((m) => ({ default: m.RulebookView })));
 
-const DOCK = [
-  { id: "setup", label: "Setup" },
-  { id: "titles", label: "Titles" },
-  { id: "combat", label: "Combat" },
-  { id: "crisis", label: "Crisis" },
-  { id: "execution", label: "Execute" },
-  { id: "rules", label: "Rules" },
-] as const;
+const DOCK = ["setup", "titles", "combat", "crisis", "execution", "rules"] as const;
 
 const ROUTES = ["setup", "titles", "combat", "crisis", "execution", "rules", "rulebook"];
 
@@ -32,6 +26,8 @@ export function App() {
   const { state, dispatch } = useStore();
   const [theme, toggleTheme] = useTheme();
   const [route, setRoute] = useState(readHash);
+  const [lang, setLang] = useState(getLanguage);
+  const nextLang = LANGUAGES[(LANGUAGES.indexOf(lang) + 1) % LANGUAGES.length];
 
   useEffect(() => {
     const onHash = () => {
@@ -54,61 +50,76 @@ export function App() {
   const boxes = [config.pegasus && "PEG", config.exodus && "EXO", config.daybreak && "DAY"].filter(Boolean);
 
   return (
+    // Keyed by language so every view re-renders (and re-reads its text) when the language changes.
+    <Fragment key={lang}>
     <div className="app">
       <header className="hud-top">
         <div className="hud-bar">
           <div className="hud-title">
             <h1>
-              <span className="app-title" role="img" aria-label="BSG Companion" />
+              <span className="app-title" role="img" aria-label={t("app.name")} />
             </h1>
             <div className="hud-status">
-              {["BASE", ...boxes].join("+")} · {ENDING_LABEL[config.ending].toUpperCase()}
+              {["BASE", ...boxes].join("+")} · {endingLabel(config.ending).toUpperCase()}
               {players.length > 0 && ` · P:${players.length}`} ·{" "}
-              <span className={state.phase === "playing" ? "ok" : ""}>{state.phase === "playing" ? "IN GAME" : "SETUP"}</span>
+              <span className={state.phase === "playing" ? "ok" : ""}>{state.phase === "playing" ? t("app.status.playing") : t("app.status.setup")}</span>
             </div>
           </div>
           <button
             className="hud-btn"
             onClick={toggleTheme}
-            aria-label={`${THEME_LABEL[theme].name} theme, switch to ${THEME_LABEL[nextTheme(theme)].name}`}
-            title="Switch console theme"
+            aria-label={t("app.theme.aria", { theme: THEME_LABEL[theme].name, next: THEME_LABEL[nextTheme(theme)].name })}
+            title={t("app.theme.title")}
           >
             {THEME_LABEL[theme].short}
           </button>
+          {LANGUAGES.length > 1 && (
+            <button
+              className="hud-btn"
+              onClick={() => {
+                setLanguage(nextLang);
+                setLang(nextLang);
+              }}
+              aria-label={t("app.language.aria", { language: LANGUAGE_NAME[lang] ?? lang, next: LANGUAGE_NAME[nextLang] ?? nextLang })}
+              title={t("app.language.title")}
+            >
+              {lang.toUpperCase()}
+            </button>
+          )}
           <button
             className="hud-btn danger"
             onClick={() => {
-              if (confirm("Start over? This clears characters, titles and the game log. Game settings (expansions, modules, ending, variants) are kept.")) {
+              if (confirm(t("app.reset.confirm"))) {
                 dispatch({ type: "reset" });
                 go("setup");
               }
             }}
           >
-            Reset
+            {t("app.reset")}
           </button>
         </div>
         {/* the website points to the apps; inside the apps this is pointless */}
         {!Capacitor.isNativePlatform() && (
           <div className="store-links">
             <a className="framed store-btn" href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
-              App Store
+              {t("app.store.appStore")}
             </a>
             <a className="framed store-btn" href={ANDROID_TESTER_MAILTO}>
-              Join Android test
+              {t("app.store.androidTest")}
             </a>
           </div>
         )}
         <div className="hud-rail" />
-        <nav className="dock" aria-label="Sections">
-          {DOCK.map((t) => (
+        <nav className="dock" aria-label={t("app.nav.aria")}>
+          {DOCK.map((id) => (
             <a
-              key={t.id}
-              href={`#/${t.id}`}
-              className={dockActive === t.id ? "active" : ""}
-              aria-current={dockActive === t.id ? "page" : undefined}
+              key={id}
+              href={`#/${id}`}
+              className={dockActive === id ? "active" : ""}
+              aria-current={dockActive === id ? "page" : undefined}
             >
-              <NavIcon name={t.id} />
-              <span>{t.label}</span>
+              <NavIcon name={id} />
+              <span>{t(`app.nav.${id}`)}</span>
             </a>
           ))}
         </nav>
@@ -117,8 +128,8 @@ export function App() {
       <main>
         {(current === "rules" || current === "rulebook") && (
           <div className="subtabs">
-            <a href="#/rules" className={current === "rules" ? "active" : ""}>Quick rules</a>
-            <a href="#/rulebook" className={current === "rulebook" ? "active" : ""}>Rulebook</a>
+            <a href="#/rules" className={current === "rules" ? "active" : ""}>{t("app.subtab.quickRules")}</a>
+            <a href="#/rulebook" className={current === "rulebook" ? "active" : ""}>{t("app.subtab.rulebook")}</a>
           </div>
         )}
         {current === "setup" && <SetupView go={go} />}
@@ -130,15 +141,16 @@ export function App() {
         )}
         {current === "rules" && <QuickRulesView />}
         {current === "rulebook" && (
-          <Suspense fallback={<div className="view muted">Loading rulebook…</div>}>
+          <Suspense fallback={<div className="view muted">{t("app.loadingRulebook")}</div>}>
             <RulebookView />
           </Suspense>
         )}
       </main>
 
       <footer className="footer small muted">
-        Unofficial fan-made companion for Battlestar Galactica: The Board Game, not affiliated with Fantasy Flight Games. All data stays on this device.
+        {t("app.footer")}
       </footer>
     </div>
+    </Fragment>
   );
 }

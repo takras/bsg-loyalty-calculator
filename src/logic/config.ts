@@ -1,4 +1,5 @@
 import type { Box } from "../data/characters";
+import { t } from "../i18n";
 
 // Game configuration and the derived rule flags.
 // The derivation mirrors validateForm()/flipSwitches() in BSGRulebook/rulebook.md so the
@@ -6,12 +7,7 @@ import type { Box } from "../data/characters";
 
 export type Ending = "kobol" | "newcaprica" | "ioniannebula" | "searchforhome";
 
-export const ENDING_LABEL: Record<Ending, string> = {
-  kobol: "Kobol",
-  newcaprica: "New Caprica",
-  ioniannebula: "Ionian Nebula",
-  searchforhome: "Search for Home (Earth)",
-};
+export const endingLabel = (e: Ending) => t(`ending.${e}`);
 
 export interface Config {
   pegasus: boolean;

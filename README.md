@@ -65,7 +65,9 @@ npm run ios       # build web, sync, open Xcode (macOS only)
     Without it the release build stops with an explanation.
   - Use Play App Signing: Google holds the app signing key, you only keep the upload key. Back it up.
 - **Versions**: `versionName` = `package.json` version, `versionCode` = major·10000 + minor·100 + patch.
-  Bump with `npm version patch` (or `minor`/`major`) before each store upload.
+  Bump with `npm version patch` (or `minor`/`major`) before each store upload. The iOS workflow uses the same
+  scheme (`MARKETING_VERSION` / build number). Rules → About shows the running version: the installed app's own
+  version and build on Android/iOS (via `@capacitor/app`), the `package.json` version on the web.
 - **iOS**: built in the cloud by GitHub Actions (**Build iOS app**, manual): unsigned check, simulator
   build, or a signed TestFlight upload, no Mac needed. See [docs/ios-build.md](docs/ios-build.md) for
   the secrets and the one-time App Store Connect setup.
@@ -80,6 +82,24 @@ npm run ios       # build web, sync, open Xcode (macOS only)
 - `src/data/` - characters, lines of succession, combat table, attributions.
 - `src/logic/` - config rules (ported from the BSGRulebook option logic), loyalty deck, setup checklist, line-up checks.
 - `src/content/rulebook.md` - copy of `BSGRulebook/rulebook.md`; its images are in `public/rulebook/images/`.
+
+## Translations
+
+All app text is in `src/i18n/en.json` (flat `area.name` keys); code reads it with `t("key")`, or `<T k="key" />`
+for text with `<b>`/`<i>` markup. Each other language is a `src/i18n/<code>.json` with the same keys; missing
+keys fall back to English. A language button appears in the header once a second language exists, and the app
+follows the device language by default. The full rulebook (Rules → Rulebook) stays in English.
+
+Working with a translator (Italian shown):
+
+1. `npm run i18n:export` writes `translations/it.csv` (key, English, Italian, notes). Send it to the translator;
+   it opens in Google Sheets, Excel or LibreOffice. They fill in the `it` column only.
+2. Save their file over `translations/it.csv` and run `npm run i18n:import`. It writes `src/i18n/it.json` and
+   lists any rows it skipped because a `{placeholder}` or a `<b>`/`<i>` tag doesn't match the English.
+3. When English text changes later, export again: existing translations are kept, new rows are empty.
+
+For another language, run the scripts directly, e.g. `node scripts/i18n-export.mjs de`, and add its name to
+`LANGUAGE_NAME` in `src/i18n/index.tsx`.
 
 ## Assets
 

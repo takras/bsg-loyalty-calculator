@@ -1,3 +1,4 @@
+import { T, t } from "../i18n";
 import { useStore } from "../state/store";
 
 /** How a Reckless Skill Check works (Pegasus; resolved differently when Daybreak is also in play). */
@@ -6,22 +7,19 @@ export function RecklessSummary() {
   return state.config.daybreak ? (
     <>
       <p>
-        A Skill card marked <strong>Reckless</strong> is played before cards are added and makes the check Reckless.
-        After the Skill Check Abilities are resolved:
+        <T k="reckless.daybreak.intro" />
       </p>
       <ol>
-        <li>Draw and show 1 Treachery card.</li>
+        <li>{t("reckless.daybreak.step1")}</li>
         <li>
-          <strong>Strength 0?</strong> Draw 1 more Treachery card, resolve <em>both</em> cards’ Skill Check Abilities
-          (duplicates allowed), then discard both - they don’t count toward the total.
+          <T k="reckless.daybreak.step2" />
         </li>
-        <li>Otherwise discard it - nothing happens.</li>
+        <li>{t("reckless.daybreak.step3")}</li>
       </ol>
     </>
   ) : (
     <p>
-      A Skill card marked <strong>Reckless</strong> is played before cards are added and makes the check Reckless.
-      Treachery cards with a <em>“Reckless Skill Check”</em> ability only trigger when revealed in a Reckless check.
+      <T k="reckless.summary" />
     </p>
   );
 }
@@ -32,29 +30,21 @@ export function RecklessSequence() {
   const daybreak = state.config.daybreak;
   return (
     <ol className="steps reckless-steps">
-      <li>Check begins - auto pass/fail effects resolve.</li>
+      <li>{t("reckless.seq.begins")}</li>
       <li className="hl">
-        <strong>Play the Reckless card</strong> (a “before cards are added” ability). Max one per check; not after
-        “Restore Order”, and “Restore Order” can’t follow it.
+        <T k="reckless.seq.play" />
       </li>
-      <li>Add 2 Destiny cards, then players add cards (current player last).</li>
-      <li>Shuffle and reveal.</li>
+      <li>{t("reckless.seq.add")}</li>
+      <li>{t("reckless.seq.reveal")}</li>
       <li className={daybreak ? "" : "hl"}>
-        Resolve Skill Check Abilities.
-        {!daybreak && (
-          <>
-            {" "}
-            <strong>“Reckless Skill Check” Treachery abilities trigger now</strong>, only because the check is Reckless.
-          </>
-        )}
+        {daybreak ? t("reckless.seq.abilities") : <T k="reckless.seq.abilitiesTreachery" />}
       </li>
       {daybreak && (
         <li className="hl">
-          <strong>Reckless draw:</strong> show 1 Treachery card. Strength 0 → draw a second, resolve both abilities, discard
-          both. Otherwise discard it, no effect.
+          <T k="reckless.seq.daybreakDraw" />
         </li>
       )}
-      <li>Consequence (Skill Check Ability outcome), total the strength, resolve pass / partial / fail.</li>
+      <li>{t("reckless.seq.consequence")}</li>
     </ol>
   );
 }

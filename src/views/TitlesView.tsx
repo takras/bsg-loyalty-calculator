@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Toggle } from "../components/Toggle";
 import { RowPortrait, useRowPortraitSize } from "../components/RowPortrait";
-import { characterById, characters, displayName, TYPE_LABEL } from "../data/characters";
+import { characterById, characters, displayName, TYPE_SHORT } from "../data/characters";
 import { characterBoxes } from "../logic/config";
 import { succession, TITLE_LABEL, type TitleId } from "../data/succession";
+import { labels, T, t } from "../i18n";
 import { canHoldTitle, initialTitles } from "../logic/succession";
 import { useStore, type Player, type PlayerStatus } from "../state/store";
 
-const STATUS_LABEL: Record<PlayerStatus, string> = { human: "Human", brig: "In Brig", cylon: "Revealed Cylon" };
-const STATUS_SHORT: Record<PlayerStatus, string> = { human: "Human", brig: "Brig", cylon: "Cylon" };
+const STATUSES = ["human", "brig", "cylon"] as const;
+const STATUS_LABEL = labels(STATUSES, "titles.status");
+const STATUS_SHORT = labels(STATUSES, "titles.statusShort");
 
 export function TitlesView({ go }: { go: (tab: string) => void }) {
   const { state, dispatch, flags } = useStore();
@@ -20,7 +22,7 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
   const inBoxes = new Set(characters.filter((c) => boxes.includes(c.box)).map((c) => c.id));
   const playerByChar = Object.fromEntries(players.map((p) => [p.characterId, p])) as Record<string, Player>;
 
-  const titlesOf = (seat: number) => titleIds.filter((t) => titles[t] === seat);
+  const titlesOf = (seat: number) => titleIds.filter((title) => titles[title] === seat);
   // Before the game starts, show who *would* receive each title.
   const shownTitles = phase === "playing" ? titles : initialTitles(players, config.cylonFleet);
 
@@ -28,13 +30,13 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
     <div className="view titles">
       {phase === "playing" && players.length > 0 ? (
         <section className="card players-card">
-          <h2>Players</h2>
+          <h2>{t("titles.players")}</h2>
           <div className="holder-strip">
-            {titleIds.map((t) => {
-              const p = players.find((x) => x.seat === titles[t]);
+            {titleIds.map((title) => {
+              const p = players.find((x) => x.seat === titles[title]);
               return (
-                <div key={t} className={`hs-item title-${t}`}>
-                  <span className="hs-title">{TITLE_LABEL[t]}</span>
+                <div key={title} className={`hs-item title-${title}`}>
+                  <span className="hs-title">{TITLE_LABEL[title]}</span>
                   <span className="hs-name">{p ? characterById[p.characterId].short : "-"}</span>
                 </div>
               );
@@ -44,48 +46,49 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
             {players.map((p) => {
               const c = characterById[p.characterId];
               const leader = c.type === "cylonleader";
+              const isMutineer = state.mutineer === p.seat;
               return (
                 <li key={p.seat} className={`player status-${p.status}`}>
                   <RowPortrait c={c} size={portrait.size} onHeight={portrait.onHeight(p.seat)} />
                   <div className="player-main">
                     <div className="player-name">
                       {c.name}
-                      {c.version && <span className="ver"> ({TYPE_LABEL[c.type].split(" ")[0]})</span>}
-                      {titlesOf(p.seat).map((t) => (
-                        <span key={t} className={`badge title-${t}`}>{TITLE_LABEL[t]}</span>
+                      {c.version && <span className="ver"> ({TYPE_SHORT[c.type]})</span>}
+                      {titlesOf(p.seat).map((title) => (
+                        <span key={title} className={`badge title-${title}`}>{TITLE_LABEL[title]}</span>
                       ))}
-                      {state.mutineer === p.seat && <span className="badge ghost">Mutineer</span>}
+                      {isMutineer && <span className="badge ghost">{t("titles.mutineer")}</span>}
                     </div>
                     {leader ? (
-                      <span className="muted small">Cylon Leader · no titles</span>
+                      <span className="muted small">{t("titles.leaderNoTitles")}</span>
                     ) : (
                       <div className="player-controls">
-                        <div className="segmented xs" role="group" aria-label={`${c.short} status`}>
-                          {(Object.keys(STATUS_SHORT) as PlayerStatus[]).map((st) => (
+                        <div className="segmented xs" role="group" aria-label={t("titles.statusAria", { name: c.short })}>
+                          {STATUSES.map((st) => (
                             <button
                               key={st}
                               className={`${p.status === st ? "active" : ""} st-${st}`}
                               aria-pressed={p.status === st}
                               title={STATUS_LABEL[st]}
-                              onClick={() => p.status !== st && dispatch({ type: "setStatus", seat: p.seat, status: st })}
+                              onClick={() => p.status !== st && dispatch({ type: "setStatus", seat: p.seat, status: st as PlayerStatus })}
                             >
                               {STATUS_SHORT[st]}
                             </button>
                           ))}
                         </div>
-                        {config.daybreak && (state.mutineer === p.seat || p.status !== "cylon") && (
+                        {config.daybreak && (isMutineer || p.status !== "cylon") && (
                           <button
-                            className={`xs mutineer-btn ${state.mutineer === p.seat ? "active" : ""}`}
-                            aria-pressed={state.mutineer === p.seat}
-                            title={state.mutineer === p.seat ? "Clear the Mutineer" : `${c.short} receives the Mutineer card (strips their titles)`}
-                            onClick={() => dispatch({ type: "setMutineer", seat: state.mutineer === p.seat ? null : p.seat })}
+                            className={`xs mutineer-btn ${isMutineer ? "active" : ""}`}
+                            aria-pressed={isMutineer}
+                            title={isMutineer ? t("titles.mutineer.clear") : t("titles.mutineer.give", { name: c.short })}
+                            onClick={() => dispatch({ type: "setMutineer", seat: isMutineer ? null : p.seat })}
                           >
-                            Mutineer
+                            {t("titles.mutineer")}
                           </button>
                         )}
                         {flags.execution && (
-                          <button className="danger xs" onClick={() => go(`execution/${p.seat}`)} aria-label={`Execute ${c.short}`}>
-                            Execute
+                          <button className="danger xs" onClick={() => go(`execution/${p.seat}`)} aria-label={t("titles.executeAria", { name: c.short })}>
+                            {t("titles.execute")}
                           </button>
                         )}
                       </div>
@@ -98,37 +101,37 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
         </section>
       ) : (
         <div className="callout">
-          {players.length === 0 ? "No characters chosen yet, showing the full lines of succession. " : "Game not started, showing who would get each title. "}
-          <button className="link" onClick={() => go("setup")}>Go to Setup</button>
+          {t(players.length === 0 ? "titles.callout.noCharacters" : "titles.callout.notStarted")}{" "}
+          <button className="link" onClick={() => go("setup")}>{t("titles.callout.goToSetup")}</button>
         </div>
       )}
 
       <div className="row-between">
-        <h2 className="section-title">Lines of succession</h2>
+        <h2 className="section-title">{t("titles.lines")}</h2>
         {players.length > 0 && (
-          <Toggle label="Show characters not in play" checked={showAll} onChange={setShowAll} on="Shown" off="Hidden" />
+          <Toggle label={t("titles.showAll")} checked={showAll} onChange={setShowAll} on={t("toggle.shown")} off={t("toggle.hidden")} />
         )}
       </div>
 
       <div className="succession-grid">
-        {titleIds.map((t) => {
-          const line = succession[t].filter((id) => inBoxes.has(id) && (showAll || players.length === 0 || playerByChar[id]));
-          const holderSeat = shownTitles[t];
+        {titleIds.map((title) => {
+          const line = succession[title].filter((id) => inBoxes.has(id) && (showAll || players.length === 0 || playerByChar[id]));
+          const holderSeat = shownTitles[title];
           // Next in line if the holder were to lose the title.
-          const nextUp = succession[t].find((id) => {
+          const nextUp = succession[title].find((id) => {
             const p = playerByChar[id];
-            return p && p.seat !== holderSeat && canHoldTitle(p) && (t === "president" || p.status !== "brig");
+            return p && p.seat !== holderSeat && canHoldTitle(p) && (title === "president" || p.status !== "brig");
           });
           return (
-            <section key={t} className={`card succession title-${t}`}>
-              <h3 className="succession-head">{TITLE_LABEL[t]}</h3>
+            <section key={title} className={`card succession title-${title}`}>
+              <h3 className="succession-head">{TITLE_LABEL[title]}</h3>
               <ol>
                 {line.map((id) => {
                   const p = playerByChar[id];
                   const c = characterById[id];
                   const isHolder = p && p.seat === holderSeat;
-                  const ineligible = p && (!canHoldTitle(p) || (t !== "president" && p.status === "brig"));
-                  const rank = succession[t].indexOf(id) + 1;
+                  const ineligible = p && (!canHoldTitle(p) || (title !== "president" && p.status === "brig"));
+                  const rank = succession[title].indexOf(id) + 1;
                   return (
                     <li
                       key={id}
@@ -141,16 +144,16 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
                     >
                       <span className="rank">{rank}</span>
                       <span className="succ-name">{displayName(c)}</span>
-                      {isHolder && <span className="badge">Holder</span>}
-                      {id === nextUp && phase === "playing" && <span className="badge ghost">Next</span>}
+                      {isHolder && <span className="badge">{t("titles.holder")}</span>}
+                      {id === nextUp && phase === "playing" && <span className="badge ghost">{t("titles.next")}</span>}
                       {p && p.status !== "human" && <span className="badge warn" title={STATUS_LABEL[p.status]}>{STATUS_SHORT[p.status]}</span>}
                       {phase === "playing" && p && !isHolder && canHoldTitle(p) && (
                         <button
                           className="link small give"
-                          title={`Give ${TITLE_LABEL[t]} to ${c.short} (e.g. via a card effect)`}
-                          onClick={() => dispatch({ type: "giveTitle", title: t, seat: p.seat })}
+                          title={t("titles.give.title", { title: TITLE_LABEL[title], name: c.short })}
+                          onClick={() => dispatch({ type: "giveTitle", title, seat: p.seat })}
                         >
-                          give
+                          {t("titles.give")}
                         </button>
                       )}
                     </li>
@@ -163,22 +166,27 @@ export function TitlesView({ go }: { go: (tab: string) => void }) {
       </div>
 
       <section className="card">
-        <h3>Title rules</h3>
+        <h3>{t("titles.rules.title")}</h3>
         <ul className="checks">
-          <li>Titles pass down the line automatically when a holder reveals as a Cylon (or, for Admiral{config.cylonFleet ? "/CAG" : ""}, goes to the Brig). They never move just because someone higher in line becomes available - use “give” for card effects.</li>
-          <li>Only human players hold titles. A revealed Cylon loses all titles to the highest in each line.{flags.cylonLeader && " Cylon Leaders never hold titles, even while Infiltrating."}</li>
-          <li>Admiral{config.cylonFleet ? " and CAG" : ""} in the Brig lose the title to the highest in line <em>not</em> in the Brig. They don’t get it back on release. If everyone is in the Brig, the highest in line holds it until someone leaves.</li>
-          <li>The President keeps the title in the Brig.</li>
-          {config.ending === "newcaprica" && <li>Detention on New Caprica does not strip the Admiral{config.cylonFleet ? " or CAG" : ""}.</li>}
-          {flags.execution && <li>Executed human: titles go to the first in line, including the new character. Other holders keep theirs.</li>}
-          {config.daybreak && <li>Receiving the Mutineer card strips all titles (to the highest in line, excluding the Mutineer) - tap “Mutineer” on that player. A Mutineer who reveals as a Cylon hands the card to a human player.</li>}
-          <li>Quorum hand, nukes and destination cards travel with the title.</li>
+          <li>{t(config.cylonFleet ? "titles.rules.passDownCag" : "titles.rules.passDown")}</li>
+          <li>
+            {t("titles.rules.humansOnly")}
+            {flags.cylonLeader && ` ${t("titles.rules.leadersNever")}`}
+          </li>
+          <li>
+            <T k={config.cylonFleet ? "titles.rules.brigCag" : "titles.rules.brig"} />
+          </li>
+          <li>{t("titles.rules.presidentBrig")}</li>
+          {config.ending === "newcaprica" && <li>{t(config.cylonFleet ? "titles.rules.detentionCag" : "titles.rules.detention")}</li>}
+          {flags.execution && <li>{t("titles.rules.executed")}</li>}
+          {config.daybreak && <li>{t("titles.rules.mutineer")}</li>}
+          <li>{t("titles.rules.travel")}</li>
         </ul>
       </section>
 
       {phase === "playing" && state.log.length > 0 && (
         <section className="card">
-          <h3>Log</h3>
+          <h3>{t("titles.log")}</h3>
           <ol className="log">
             {state.log.map((l, i) => (
               <li key={i}>{l}</li>

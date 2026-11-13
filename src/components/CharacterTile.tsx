@@ -1,4 +1,5 @@
-import { plateName, TYPE_LABEL, type Character } from "../data/characters";
+import { plateName, TYPE_LABEL, TYPE_SHORT, type Character } from "../data/characters";
+import { t } from "../i18n";
 import { FitText } from "./FitText";
 
 // Standee images live in src/assets/characters/<id>.<ext>; only files that exist get bundled.
@@ -70,12 +71,12 @@ export function CharacterTile({
       disabled={disabled}
       onClick={onClick}
       aria-pressed={selected}
-      aria-label={`${c.name}, ${TYPE_LABEL[c.type]}${c.version ? `, ${c.version} version` : ""}`}
+      aria-label={`${c.name}, ${TYPE_LABEL[c.type]}${c.version ? `, ${t(`character.${c.version}Version`)}` : ""}`}
     >
       <Portrait c={c} size={96} label />
       <span className={`char-type type-${c.type}`}>
-        {TYPE_LABEL[c.type].replace(" Leader", "")}
-        {c.version && <em> · {c.version === "original" ? "Orig." : "Alt."}</em>}
+        {TYPE_SHORT[c.type]}
+        {c.version && <em> · {t(c.version === "original" ? "character.origTag" : "character.altTag")}</em>}
       </span>
       {note && <span className="char-note">{note}</span>}
       {warn && <span className="char-reason">{warn}</span>}

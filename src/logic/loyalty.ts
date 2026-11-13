@@ -1,8 +1,13 @@
 import { characterById } from "../data/characters";
+import { t, tp } from "../i18n";
 import type { Config, Flags } from "./config";
+
+/** Loyalty card kinds; the label comes from loyalty.card.<kind>. */
+export type LoyaltyCard = "cylon" | "notCylon" | "mutineer" | "sympatheticCylon" | "sympathizer";
 
 export interface LoyaltyLine {
   count: number;
+  kind: LoyaltyCard;
   card: string;
   note?: string;
 }
@@ -34,23 +39,24 @@ export function loyaltyTable(cylonLeader: boolean, exodusLoyalty: boolean) {
   return TABLES[`${cylonLeader ? "CL" : "noCL"}-${exodusLoyalty ? "exodus" : "regular"}`];
 }
 
+const line = (count: number, kind: LoyaltyCard, note?: string): LoyaltyLine => ({
+  count,
+  kind,
+  card: t(`loyalty.card.${kind}`),
+  note,
+});
+
 export function computeLoyalty(config: Config, flags: Flags, characterIds: string[]): LoyaltySetup {
   const n = characterIds.length;
   const errors: string[] = [];
   const cl = flags.cylonLeader;
   const leaders = characterIds.filter((id) => characterById[id]?.type === "cylonleader");
-  if (leaders.length > 1) errors.push("Only one player may choose a Cylon Leader.");
-  if (cl && n < 4) errors.push("Cylon Leaders cannot be used in a 3 player game (needs 4-7 players).");
+  if (leaders.length > 1) errors.push(t("loyalty.error.oneLeader"));
+  if (cl && n < 4) errors.push(t("loyalty.error.leaderNotIn3"));
 
   const table = loyaltyTable(cl, flags.exodusLoyalty);
   const row = table[n];
-  if (!row) {
-    errors.push(
-      cl
-        ? "With a Cylon Leader the game needs 4-7 players (including the Leader)."
-        : "The game needs 3-6 players (7 only with a Cylon Leader).",
-    );
-  }
+  if (!row) errors.push(t(cl ? "loyalty.error.countWithLeader" : "loyalty.error.count"));
 
   const [cylon, nac] = row ?? [0, 0];
   const hasBoomer = characterIds.includes("boomer");
@@ -59,80 +65,63 @@ export function computeLoyalty(config: Config, flags: Flags, characterIds: strin
   const odd = n === 5 || n === 7;
 
   const deck: LoyaltyLine[] = [
-    { count: cylon, card: "You Are a Cylon" },
-    {
-      count: nac,
-      card: "You Are Not a Cylon",
-      note: `${n} players${cl ? " incl. Cylon Leader" : ""}, ${flags.exodusLoyalty ? "Exodus “extra card”" : "regular"} deck`,
-    },
+    line(cylon, "cylon"),
+    line(
+      nac,
+      "notCylon",
+      t(cl ? "loyalty.note.baseWithLeader" : "loyalty.note.base", {
+        count: n,
+        deck: t(flags.exodusLoyalty ? "loyalty.note.deckExodus" : "loyalty.note.deckRegular"),
+      }),
+    ),
   ];
-  if (hasBoomer) deck.push({ count: 1, card: "You Are Not a Cylon", note: "Boomer chosen" });
-  if (hasBaltar) deck.push({ count: 1, card: "You Are Not a Cylon", note: "Gaius Baltar (Political) chosen" });
+  if (hasBoomer) deck.push(line(1, "notCylon", t("loyalty.note.boomer")));
+  if (hasBaltar) deck.push(line(1, "notCylon", t("loyalty.note.baltar")));
 
   const laterAdd: LoyaltyLine[] = [];
   const extras: string[] = [];
 
   if (config.daybreak) {
-    if (cl && odd) deck.push({ count: 1, card: "You Are the Mutineer", note: "Daybreak, Cylon Leader, 5 or 7 players" });
+    if (cl && odd) deck.push(line(1, "mutineer", t("loyalty.note.daybreakLeaderOdd")));
     if (!cl && even) {
-      deck.push({ count: 1, card: "You Are the Mutineer", note: "Daybreak, 4 or 6 players" });
-      deck.push({ count: 1, card: "You Are Not a Cylon", note: "Daybreak, 4 or 6 players" });
+      deck.push(line(1, "mutineer", t("loyalty.note.daybreakEven")));
+      deck.push(line(1, "notCylon", t("loyalty.note.daybreakEven")));
     }
   } else if (!cl && even) {
     if (flags.sympatheticCylon) {
-      laterAdd.push({ count: 1, card: "You Are a Sympathetic Cylon", note: "Sympathetic Cylon variant" });
-      extras.push(
-        flags.motive
-          ? "Keep the Motive deck and the Infiltration card ready for the Sympathetic Cylon."
-          : "Keep the Sympathetic Agenda cards (Caprica Six on the back) and the Infiltration card ready.",
-      );
+      laterAdd.push(line(1, "sympatheticCylon", t("loyalty.note.sympatheticCylon")));
+      extras.push(t(flags.motive ? "loyalty.extra.sympatheticMotive" : "loyalty.extra.sympatheticAgenda"));
     } else if (flags.noSympathizer) {
-      laterAdd.push({ count: 1, card: "You Are Not a Cylon", note: "No Sympathizer variant" });
-      extras.push("No Sympathizer: set resources to 8 fuel, 7 food, 9 morale, 10 population.");
-      extras.push("No Sympathizer: revealed Cylons draw 3 Skill cards instead of 2.");
+      laterAdd.push(line(1, "notCylon", t("loyalty.note.noSympathizer")));
+      extras.push(t("loyalty.extra.noSympathizerResources"));
+      extras.push(t("loyalty.extra.noSympathizerSkills"));
     } else {
-      laterAdd.push({ count: 1, card: "You Are a Sympathizer", note: "4 or 6 players" });
+      laterAdd.push(line(1, "sympathizer", t("loyalty.note.evenPlayers")));
     }
   }
 
   const deckSize = deck.reduce((s, l) => s + l.count, 0);
   const humansDealt = characterIds.filter((id) => characterById[id]?.type !== "cylonleader");
 
-  const firstDeal = humansDealt.map((id) =>
-    id === "gaius" ? `${characterById[id].short}: 2 cards` : `${characterById[id].short}: 1 card`,
-  );
-  if (cl) firstDeal.push(`${characterById[leaders[0]]?.short ?? "Cylon Leader"}: no Loyalty card`);
+  const deal = (id: string, cards: number) => `${characterById[id].short}: ${tp("loyalty.cards", cards)}`;
+  const firstDeal = humansDealt.map((id) => deal(id, id === "gaius" ? 2 : 1));
+  if (cl) firstDeal.push(t("loyalty.leaderNoCard", { name: characterById[leaders[0]]?.short ?? t("type.cylonleader") }));
 
-  const sleeperDeal = humansDealt.map((id) =>
-    id === "boomer" ? `${characterById[id].short}: 2 cards` : `${characterById[id].short}: 1 card`,
-  );
+  const sleeperDeal = humansDealt.map((id) => deal(id, id === "boomer" ? 2 : 1));
 
   if (cl) {
-    if (flags.agenda) {
-      extras.push(
-        even
-          ? "Cylon Leader: deal 1 random Sympathetic Agenda card (Caprica Six on the back)."
-          : "Cylon Leader: deal 1 random Hostile Agenda card (Centurion on the back).",
-      );
-    } else {
-      extras.push("Cylon Leader: deal 2 random Motive cards now, and 2 more at the Sleeper Agent phase.");
-    }
-    extras.push("Cylon Leader draws 2 Skill cards at start (instead of 3) unless starting as an Infiltrator.");
+    if (flags.agenda) extras.push(t(even ? "loyalty.extra.leaderSympatheticAgenda" : "loyalty.extra.leaderHostileAgenda"));
+    else extras.push(t("loyalty.extra.leaderMotives"));
+    extras.push(t("loyalty.extra.leaderSkills"));
   }
   if (flags.motive && !config.daybreak) {
-    extras.push(
-      flags.treachery
-        ? "Motive deck: remove “Make an Ally”, then remove 1 random card of the 7 with Cylon allegiance."
-        : "Motive deck: remove “Make an Ally” and “Fight with Honor”.",
-    );
+    extras.push(t(flags.treachery ? "loyalty.extra.motiveDeckTreachery" : "loyalty.extra.motiveDeck"));
   }
-  if (deck.some((l) => l.card === "You Are the Mutineer")) {
-    extras.push("If the Mutineer is still in the deck after the Sleeper Agent phase, the current player picks a human to draw 1 more Loyalty card.");
-  }
+  if (deck.some((l) => l.kind === "mutineer")) extras.push(t("loyalty.extra.mutineer"));
 
   const notACylonPool: string[] = [];
-  if (flags.finalFive) notACylonPool.push("Final Five cards");
-  if (flags.personalGoal) notACylonPool.push("Personal Goal cards");
+  if (flags.finalFive) notACylonPool.push(t("loyalty.pool.finalFive"));
+  if (flags.personalGoal) notACylonPool.push(t("loyalty.pool.personalGoal"));
 
   return {
     valid: errors.length === 0,

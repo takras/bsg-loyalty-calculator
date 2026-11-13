@@ -3,8 +3,9 @@ import { CharacterTile } from "../components/CharacterTile";
 import { Toggle } from "../components/Toggle";
 import { BOX_LABEL, characters, characterById, TYPE_LABEL, type CharacterType } from "../data/characters";
 import { TITLE_LABEL, type TitleId } from "../data/succession";
+import { T, t, tp } from "../i18n";
 import { setupChecklist } from "../logic/checklist";
-import { allowed, characterBoxes, ENDING_LABEL, isOutsideExpansion, type Config, type Ending } from "../logic/config";
+import { allowed, characterBoxes, endingLabel, isOutsideExpansion, type Config, type Ending } from "../logic/config";
 import { computeLoyalty } from "../logic/loyalty";
 import { initialTitles } from "../logic/succession";
 import { validateLineup } from "../logic/validate";
@@ -28,7 +29,8 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
   const issues = useMemo(() => validateLineup(chosenIds, config), [chosenIds.join(), config]);
   const errors = issues.filter((i) => i.level === "error");
   const flagged = new Map<string, string>();
-  for (const i of issues) for (const id of i.ids ?? []) if (!flagged.has(id)) flagged.set(id, i.level === "error" ? "Rule conflict" : "Check rules");
+  for (const i of issues)
+    for (const id of i.ids ?? []) if (!flagged.has(id)) flagged.set(id, t(i.level === "error" ? "setup.flag.rule" : "setup.flag.check"));
   const canStart = players.length > 0 && errors.length === 0 && loyalty.valid;
 
   const toggleChar = (id: string) => {
@@ -39,47 +41,54 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
 
   const endings: Ending[] = ["kobol", "newcaprica", "ioniannebula", "searchforhome"];
   const endingAllowed = (e: Ending) => e === "kobol" || a[e];
+  const endingNeeds: Record<Ending, string> = { kobol: "", newcaprica: "pegasus", ioniannebula: "exodus", searchforhome: "daybreak" };
 
   return (
     <div className="view setup">
       {locked && (
         <div className="callout">
-          The game has started, so the setup is locked.{" "}
-          <button className="link" onClick={() => go("titles")}>
-            Go to Titles
-          </button>{" "}
-          or{" "}
-          <button
-            className="link"
-            onClick={() => {
-              if (confirm("Return to setup? Title holders and the game log will be cleared.")) dispatch({ type: "backToSetup" });
+          <T
+            k="setup.locked"
+            slots={{
+              titles: (
+                <button className="link" onClick={() => go("titles")}>
+                  {t("setup.locked.goToTitles")}
+                </button>
+              ),
+              unlock: (
+                <button
+                  className="link"
+                  onClick={() => {
+                    if (confirm(t("setup.locked.confirm"))) dispatch({ type: "backToSetup" });
+                  }}
+                >
+                  {t("setup.locked.unlock")}
+                </button>
+              ),
             }}
-          >
-            unlock setup
-          </button>
-          .
+          />
         </div>
       )}
 
       <section className="card">
-        <h2>1 · Game</h2>
+        <h2>{t("setup.game.title")}</h2>
         <fieldset disabled={locked} className="options">
           <div className="opt-group">
-            <h3>Expansions</h3>
-            <Toggle on="Active" off="Off" label="Pegasus" checked={config.pegasus} onChange={(v) => set({ pegasus: v })} />
-            <Toggle on="Active" off="Off" label="Exodus" checked={config.exodus} onChange={(v) => set({ exodus: v })} />
-            <Toggle on="Active" off="Off" label="Daybreak" checked={config.daybreak} onChange={(v) => set({ daybreak: v })} />
+            <h3>{t("setup.game.expansions")}</h3>
+            <Toggle on={t("toggle.active")} label={BOX_LABEL.pegasus} checked={config.pegasus} onChange={(v) => set({ pegasus: v })} />
+            <Toggle on={t("toggle.active")} label={BOX_LABEL.exodus} checked={config.exodus} onChange={(v) => set({ exodus: v })} />
+            <Toggle on={t("toggle.active")} label={BOX_LABEL.daybreak} checked={config.daybreak} onChange={(v) => set({ daybreak: v })} />
           </div>
           {config.exodus && (
             <div className="opt-group">
-              <h3>Exodus modules</h3>
-              <Toggle on="Active" label="Cylon Fleet board (CAG)" checked={config.cylonFleet} onChange={(v) => set({ cylonFleet: v })} />
-              <Toggle on="Active" label="Personal Goal cards" checked={config.personalGoal} onChange={(v) => set({ personalGoal: v })} />
-              <Toggle on="Active" label="Final Five cards" checked={config.finalFive} onChange={(v) => set({ finalFive: v })} />
+              <h3>{t("setup.game.modules")}</h3>
+              <Toggle on={t("toggle.active")} label={t("setup.module.cylonFleet")} checked={config.cylonFleet} onChange={(v) => set({ cylonFleet: v })} />
+              <Toggle on={t("toggle.active")} label={t("setup.module.personalGoal")} checked={config.personalGoal} onChange={(v) => set({ personalGoal: v })} />
+              <Toggle on={t("toggle.active")} label={t("setup.module.finalFive")} checked={config.finalFive} onChange={(v) => set({ finalFive: v })} />
             </div>
           )}
           <div className="opt-group">
-            <h3>Ending</h3>
+            <h3>{t("setup.game.ending")}</h3>
             <div className="segmented">
               {endings.map((e) => (
                 <button
@@ -87,45 +96,45 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
                   type="button"
                   className={config.ending === e ? "active" : ""}
                   disabled={!endingAllowed(e)}
-                  title={!endingAllowed(e) ? `Needs ${e === "newcaprica" ? "Pegasus" : e === "ioniannebula" ? "Exodus" : "Daybreak"}` : undefined}
+                  title={!endingAllowed(e) ? t("setup.ending.needs", { box: t(`box.${endingNeeds[e]}`) }) : undefined}
                   onClick={() => set({ ending: e })}
                 >
-                  {ENDING_LABEL[e]}
+                  {endingLabel(e)}
                 </button>
               ))}
             </div>
           </div>
           <details className="opt-group variants">
-            <summary>Variants</summary>
-            <Toggle label="No Sympathizer (official)" checked={config.noSympathizer} disabled={!a.noSympathizer} onChange={(v) => set({ noSympathizer: v })} hint="Only without Cylon Leader / Daybreak" />
-            <Toggle label="Sympathetic Cylon" checked={config.sympatheticCylon} disabled={!a.sympatheticCylon} onChange={(v) => set({ sympatheticCylon: v })} hint="Only without Cylon Leader / Daybreak" />
-            <Toggle label="Exodus: use regular Loyalty deck (no extra card)" checked={config.forcePegasusLoyalty} disabled={!a.forcePegasusLoyalty} onChange={(v) => set({ forcePegasusLoyalty: v })} />
-            <Toggle label="Pegasus: use Exodus “extra card” Loyalty deck" checked={config.forceExodusLoyalty} disabled={!a.forceExodusLoyalty} onChange={(v) => set({ forceExodusLoyalty: v })} />
-            <Toggle label="Replace Agenda cards with Daybreak Motives" checked={config.forceMotive} disabled={!a.forceMotive} onChange={(v) => set({ forceMotive: v })} />
-            <Toggle label="Use a Cylon Locations overlay" checked={config.forceOverlay} disabled={!a.forceOverlay} onChange={(v) => set({ forceOverlay: v })} />
-            <Toggle label="Allies for All Seasons" checked={config.allySeasons} disabled={!a.allySeasons} onChange={(v) => set({ allySeasons: v })} />
+            <summary>{t("setup.variants")}</summary>
+            <Toggle label={t("setup.variant.noSympathizer")} checked={config.noSympathizer} disabled={!a.noSympathizer} onChange={(v) => set({ noSympathizer: v })} hint={t("setup.variant.noLeaderHint")} />
+            <Toggle label={t("setup.variant.sympatheticCylon")} checked={config.sympatheticCylon} disabled={!a.sympatheticCylon} onChange={(v) => set({ sympatheticCylon: v })} hint={t("setup.variant.noLeaderHint")} />
+            <Toggle label={t("setup.variant.forcePegasusLoyalty")} checked={config.forcePegasusLoyalty} disabled={!a.forcePegasusLoyalty} onChange={(v) => set({ forcePegasusLoyalty: v })} />
+            <Toggle label={t("setup.variant.forceExodusLoyalty")} checked={config.forceExodusLoyalty} disabled={!a.forceExodusLoyalty} onChange={(v) => set({ forceExodusLoyalty: v })} />
+            <Toggle label={t("setup.variant.forceMotive")} checked={config.forceMotive} disabled={!a.forceMotive} onChange={(v) => set({ forceMotive: v })} />
+            <Toggle label={t("setup.variant.forceOverlay")} checked={config.forceOverlay} disabled={!a.forceOverlay} onChange={(v) => set({ forceOverlay: v })} />
+            <Toggle label={t("setup.variant.allySeasons")} checked={config.allySeasons} disabled={!a.allySeasons} onChange={(v) => set({ allySeasons: v })} />
             <Toggle
-              label="Allow characters from expansions not in play"
+              label={t("setup.variant.allowAllCharacters")}
               checked={config.allowAllCharacters}
               onChange={(v) => set({ allowAllCharacters: v })}
-              hint="House rule - some of their abilities need their expansion's components"
+              hint={t("setup.variant.allowAllCharactersHint")}
             />
             <Toggle
-              label="Ignore character type balance"
+              label={t("setup.variant.ignoreTypeBalance")}
               checked={config.ignoreTypeBalance}
               onChange={(v) => set({ ignoreTypeBalance: v })}
-              hint="House rule - Political, Military and Pilot don't have to be chosen evenly"
+              hint={t("setup.variant.ignoreTypeBalanceHint")}
             />
-            <Toggle label="Demetrius & Missions regardless of ending" checked={config.forceDemetrius} disabled={!a.forceDemetrius} onChange={(v) => set({ forceDemetrius: v })} />
+            <Toggle label={t("setup.variant.forceDemetrius")} checked={config.forceDemetrius} disabled={!a.forceDemetrius} onChange={(v) => set({ forceDemetrius: v })} />
           </details>
         </fieldset>
       </section>
 
       <section className="card">
-        <h2>2 · Characters</h2>
+        <h2>{t("setup.characters.title")}</h2>
         <p className="muted">
-          Choose characters at the table as usual, then tap them here. The app checks the line-up against the rules.
-          {!a.cylonLeader && " Cylon Leaders need Pegasus or Daybreak."}
+          {t("setup.characters.intro")}
+          {!a.cylonLeader && ` ${t("setup.characters.leaderNeedsExpansion")}`}
         </p>
         {players.length > 0 && (
           <ul className="seats">
@@ -137,7 +146,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
                   <span className="seat-name">{c.short}</span>
                   {!locked && (
                     <span className="seat-actions">
-                      <button aria-label={`Remove ${c.short}`} onClick={() => dispatch({ type: "removeSeat", seat: p.seat })}>✕</button>
+                      <button aria-label={t("setup.characters.remove", { name: c.short })} onClick={() => dispatch({ type: "removeSeat", seat: p.seat })}>✕</button>
                     </span>
                   )}
                 </li>
@@ -149,20 +158,20 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
           <ul className="issues" aria-live="polite">
             {issues.map((i) => (
               <li key={i.text} className={i.level}>
-                <span className="issue-tag">{i.level === "error" ? "Rule" : "Check"}</span> {i.text}
+                <span className="issue-tag">{t(i.level === "error" ? "setup.issue.rule" : "setup.issue.check")}</span> {i.text}
               </li>
             ))}
           </ul>
         ) : (
-          players.length > 0 && <p className="issues-ok">✓ Line-up follows the selection rules.</p>
+          players.length > 0 && <p className="issues-ok">✓ {t("setup.characters.ok")}</p>
         )}
-        {TYPES.filter((t) => t !== "cylonleader" || a.cylonLeader).map((t) => {
-          const list = characters.filter((c) => c.type === t && enabledBoxes.includes(c.box));
+        {TYPES.filter((type) => type !== "cylonleader" || a.cylonLeader).map((type) => {
+          const list = characters.filter((c) => c.type === type && enabledBoxes.includes(c.box));
           if (!list.length) return null;
           return (
-            <div key={t} className="char-group">
+            <div key={type} className="char-group">
               <h3>
-                <span className={`dot type-${t}`} /> {TYPE_LABEL[t]}
+                <span className={`dot type-${type}`} /> {TYPE_LABEL[type]}
               </h3>
               <div className="char-grid">
                 {list.map((c) => {
@@ -176,7 +185,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
                       warn={chosen ? flagged.get(c.id) : undefined}
                       // only one version of a character may be chosen
                       faded={!chosen && !!c.versionOf && chosenIds.includes(c.versionOf)}
-                      note={isOutsideExpansion(config, c.box) ? `${BOX_LABEL[c.box]} character` : undefined}
+                      note={isOutsideExpansion(config, c.box) ? t("setup.characters.fromBox", { box: BOX_LABEL[c.box] }) : undefined}
                       onClick={() => toggleChar(c.id)}
                     />
                   );
@@ -188,9 +197,9 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
       </section>
 
       <section className="card">
-        <h2>3 · Loyalty deck</h2>
+        <h2>{t("setup.loyalty.title")}</h2>
         {players.length === 0 ? (
-          <p className="muted">Choose characters to see the Loyalty deck.</p>
+          <p className="muted">{t("setup.loyalty.empty")}</p>
         ) : !loyalty.valid ? (
           <ul className="errors">
             {loyalty.errors.map((e) => (
@@ -200,13 +209,15 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
         ) : (
           <div className="loyalty">
             <div className="loyalty-total">
-              <span className="big">{loyalty.deckSize}</span> cards in the Loyalty deck for{" "}
-              <strong>{loyalty.players}</strong> players
+              <T
+                k="setup.loyalty.total"
+                slots={{ cards: <span className="big">{loyalty.deckSize}</span>, players: <strong>{loyalty.players}</strong> }}
+              />
             </div>
             <table className="deck-table">
               <tbody>
                 {loyalty.deck.map((l, i) => (
-                  <tr key={i} className={l.card.includes("a Cylon") && !l.card.includes("Not") ? "cylon-row" : ""}>
+                  <tr key={i} className={l.kind === "cylon" ? "cylon-row" : ""}>
                     <td className="num">{l.count}×</td>
                     <td>{l.card}</td>
                     <td className="muted">{l.note}</td>
@@ -215,28 +226,25 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
               </tbody>
             </table>
             <ol className="steps">
-              <li>Split the Loyalty cards into “You Are a Cylon” and “You Are Not a Cylon” piles; set other cards aside.</li>
+              <li>{t("setup.loyalty.step.split")}</li>
               {loyalty.notACylonPool.length > 0 && (
-                <li>Shuffle the {loyalty.notACylonPool.join(" and ")} into the “Not a Cylon” pile first.</li>
+                <li>{t("setup.loyalty.step.pool", { cards: loyalty.notACylonPool.join(t("setup.loyalty.and")) })}</li>
               )}
-              <li>Shuffle each pile and build the deck above. Unused Cylon cards leave the game unseen.</li>
-              <li>
-                Keep the remaining “Not a Cylon” pile separate{flags.execution ? " - executions and Personal Goals draw from it" : ""}.
-              </li>
-              <li>
-                Deal: {loyalty.firstDeal.join(", ")}.
-              </li>
+              <li>{t("setup.loyalty.step.build")}</li>
+              <li>{t(flags.execution ? "setup.loyalty.step.keepPileExecution" : "setup.loyalty.step.keepPile")}</li>
+              <li>{t("setup.loyalty.step.deal", { list: loyalty.firstDeal.join(", ") })}</li>
               {loyalty.laterAdd.map((l, i) => (
                 <li key={i}>
-                  <strong>After the first deal</strong>, add {l.count}× “{l.card}” to the Loyalty deck ({l.note}).
+                  <T k="setup.loyalty.step.later" vars={{ count: l.count, card: l.card, note: l.note ?? "" }} />
                 </li>
               ))}
               {loyalty.extras.map((e) => (
                 <li key={e}>{e}</li>
               ))}
               <li>
-                Sleeper Agent phase: {loyalty.sleeperDeal.join(", ")}
-                {flags.cylonLeader ? " (Cylon Leader gets none)" : ""}.
+                {t(flags.cylonLeader ? "setup.loyalty.step.sleeperLeader" : "setup.loyalty.step.sleeper", {
+                  list: loyalty.sleeperDeal.join(", "),
+                })}
               </li>
             </ol>
           </div>
@@ -245,13 +253,13 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
 
       {players.length > 0 && (
         <section className="card">
-          <h2>4 · Titles at start</h2>
+          <h2>{t("setup.titles.title")}</h2>
           <div className="title-chips">
-            {(Object.keys(titles) as TitleId[]).map((t) => {
-              const p = players.find((x) => x.seat === titles[t]);
+            {(Object.keys(titles) as TitleId[]).map((title) => {
+              const p = players.find((x) => x.seat === titles[title]);
               return (
-                <div key={t} className={`title-chip title-${t}`}>
-                  <span className="title-name">{TITLE_LABEL[t]}</span>
+                <div key={title} className={`title-chip title-${title}`}>
+                  <span className="title-name">{TITLE_LABEL[title]}</span>
                   <span>{p ? characterById[p.characterId].short : "-"}</span>
                 </div>
               );
@@ -261,7 +269,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
       )}
 
       <section className="card">
-        <h2>5 · Board &amp; components</h2>
+        <h2>{t("setup.board.title")}</h2>
         {checklist.map((s) => (
           <div key={s.title} className="check-section">
             <h3>{s.title}</h3>
@@ -278,15 +286,15 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
         <div className="start-bar">
           <div className="start-status">
             {players.length === 0 ? (
-              <span className="muted">Enter the chosen characters</span>
+              <span className="muted">{t("setup.start.empty")}</span>
             ) : errors.length > 0 ? (
-              <span className="warn">{errors.length === 1 ? errors[0].text : `${errors.length} rule conflicts, see Characters`}</span>
+              <span className="warn">{errors.length === 1 ? errors[0].text : tp("setup.start.conflicts", errors.length)}</span>
             ) : !loyalty.valid ? (
               <span className="warn">{loyalty.errors[0]}</span>
             ) : (
               <span className="ok">
-                {players.length} players · {loyalty.deckSize} Loyalty cards
-                {issues.length > 0 && " · check warnings"}
+                {t("setup.start.ready", { players: players.length, cards: loyalty.deckSize })}
+                {issues.length > 0 && ` · ${t("setup.start.checkWarnings")}`}
               </span>
             )}
           </div>
@@ -298,7 +306,7 @@ export function SetupView({ go }: { go: (tab: string) => void }) {
               go("titles");
             }}
           >
-            Start game →
+            {t("setup.start.button")}
           </button>
         </div>
       )}

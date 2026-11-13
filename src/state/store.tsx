@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
 import { characterById } from "../data/characters";
 import { TITLE_LABEL, type TitleId } from "../data/succession";
+import { t as tr } from "../i18n";
 import { defaultConfig, deriveFlags, normalize, type Config, type Flags } from "../logic/config";
 import { computeHolder, initialTitles } from "../logic/succession";
 import { saveRaw } from "./persist";
@@ -79,7 +80,7 @@ function stripTitles(s: State, seat: number, reason: string): State {
     const next = computeHolder(t, s.players.filter((p) => p.seat !== seat), undefined);
     if (next !== undefined) {
       titles[t] = next;
-      log.push(`${TITLE_LABEL[t]}: ${nameOf(s, seat)} → ${nameOf(s, next)} (${reason})`);
+      log.push(tr("log.titleMoved", { title: TITLE_LABEL[t], from: nameOf(s, seat), to: nameOf(s, next), reason }));
     }
   }
   return { ...s, titles, log };
@@ -94,7 +95,7 @@ function settleTitles(s: State, reason: string): State {
     const holder = s.players.find((p) => p.seat === titles[t]);
     const next = computeHolder(t, s.players, holder);
     if (next !== undefined && next !== titles[t]) {
-      log.push(`${TITLE_LABEL[t]}: ${holder ? nameOf(s, holder.seat) : "—"} → ${nameOf(s, next)} (${reason})`);
+      log.push(tr("log.titleMoved", { title: TITLE_LABEL[t], from: holder ? nameOf(s, holder.seat) : "-", to: nameOf(s, next), reason }));
       titles[t] = next;
     }
   }
@@ -117,7 +118,7 @@ function reducer(s: State, a: Action): State {
     case "startGame": {
       const titles = initialTitles(s.players, s.config.cylonFleet);
       const log = (Object.keys(titles) as TitleId[]).map(
-        (t) => `${TITLE_LABEL[t]}: ${nameOf(s, titles[t]!)} (start of game)`,
+        (t) => tr("log.titleStart", { title: TITLE_LABEL[t], name: nameOf(s, titles[t]!) }),
       );
       return { ...s, phase: "playing", titles, log, removed: [], mutineer: undefined };
     }
@@ -132,26 +133,26 @@ function reducer(s: State, a: Action): State {
       };
     case "setStatus": {
       const players = s.players.map((p) => (p.seat === a.seat ? { ...p, status: a.status } : p));
-      const label = { human: "left the Brig / human", brig: "sent to the Brig", cylon: "revealed as Cylon" }[a.status];
-      const log = [...s.log, `${nameOf(s, a.seat)} ${label}`];
+      const event = tr(`log.status.${a.status}`, { name: nameOf(s, a.seat) });
+      const log = [...s.log, event];
       // A Mutineer who reveals hands the card to a human player of their choice.
       const handOff = a.status === "cylon" && s.mutineer === a.seat;
-      if (handOff) log.push(`${nameOf(s, a.seat)} must hand the Mutineer card to a human player`);
+      if (handOff) log.push(tr("log.mutineerHandOff", { name: nameOf(s, a.seat) }));
       return settleTitles(
         { ...s, players, log, mutineer: handOff ? undefined : s.mutineer },
-        `${nameOf(s, a.seat)} ${label}`,
+        event,
       );
     }
     case "giveTitle":
       return {
         ...s,
         titles: { ...s.titles, [a.title]: a.seat },
-        log: [...s.log, `${TITLE_LABEL[a.title]} given to ${nameOf(s, a.seat)}`],
+        log: [...s.log, tr("log.titleGiven", { title: TITLE_LABEL[a.title], name: nameOf(s, a.seat) })],
       };
     case "setMutineer": {
-      if (a.seat === null) return { ...s, mutineer: undefined, log: [...s.log, "Mutineer cleared"] };
-      const received = { ...s, mutineer: a.seat, log: [...s.log, `${nameOf(s, a.seat)} received the Mutineer`] };
-      return stripTitles(received, a.seat, "received the Mutineer");
+      if (a.seat === null) return { ...s, mutineer: undefined, log: [...s.log, tr("log.mutineerCleared")] };
+      const received = { ...s, mutineer: a.seat, log: [...s.log, tr("log.mutineerReceived", { name: nameOf(s, a.seat) })] };
+      return stripTitles(received, a.seat, tr("log.reason.mutineer"));
     }
     case "replaceCharacter": {
       const old = s.players.find((p) => p.seat === a.seat);
@@ -163,18 +164,18 @@ function reducer(s: State, a: Action): State {
       // Titles the executed player held go to the first in line, *including* the new character.
       // Titles held by others do not change.
       const titles = { ...s.titles };
-      const log = [...s.log, `${oldChar.short} executed (human) → now playing ${characterById[a.newId].short}`];
+      const log = [...s.log, tr("log.executed", { old: oldChar.short, now: characterById[a.newId].short })];
       for (const t of Object.keys(titles) as TitleId[]) {
         if (titles[t] !== a.seat) continue;
         const next = computeHolder(t, players, undefined);
         if (next !== undefined) {
           titles[t] = next;
-          log.push(`${TITLE_LABEL[t]}: → ${characterById[players.find((p) => p.seat === next)!.characterId].short} (execution)`);
+          log.push(tr("log.titleAfterExecution", { title: TITLE_LABEL[t], name: characterById[players.find((p) => p.seat === next)!.characterId].short }));
         }
       }
       const updated = { ...s, players, titles, removed: [...s.removed, old.characterId], log };
       // An executed Mutineer's new character receives the card again, as if just received.
-      return s.mutineer === a.seat ? stripTitles(updated, a.seat, "received the Mutineer") : updated;
+      return s.mutineer === a.seat ? stripTitles(updated, a.seat, tr("log.reason.mutineer")) : updated;
     }
     case "reset":
       // Start a new game but keep the game settings (expansions, modules, ending, variants).

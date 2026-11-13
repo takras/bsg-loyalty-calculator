@@ -3,6 +3,7 @@ import { Toggle } from "../components/Toggle";
 import { useEffect, useMemo, useRef, useState } from "react";
 import source from "../content/rulebook.md?raw";
 import { rulebookHiddenClasses } from "../logic/config";
+import { getLanguage, T, t, tp } from "../i18n";
 import { useStore } from "../state/store";
 
 const IMG_BASE = `${import.meta.env.BASE_URL}rulebook/images/`;
@@ -227,24 +228,30 @@ export function RulebookView() {
         <div className="search-field">
           <input
             type="search"
-            placeholder="Search the rulebook… (e.g. Brig, Scar, Infiltrate)"
+            placeholder={t("rulebook.search.placeholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search the rulebook"
+            aria-label={t("rulebook.search.aria")}
           />
         </div>
-        <Toggle label="Official variants (1-2 players, co-op)" checked={showVariants} onChange={setShowVariants} on="Shown" off="Hidden" />
+        <Toggle label={t("rulebook.variants")} checked={showVariants} onChange={setShowVariants} on={t("toggle.shown")} off={t("toggle.hidden")} />
         <p className="small muted">
-          Filtered to your Setup choices. Source:{" "}
-          <a href="https://jbiatek.github.io/BSGRulebook/rulebook.html" target="_blank" rel="noopener noreferrer">
-            BSG unified rulebook
-          </a>
-          .
+          <T
+            k="rulebook.source"
+            slots={{
+              link: (
+                <a href="https://jbiatek.github.io/BSGRulebook/rulebook.html" target="_blank" rel="noopener noreferrer">
+                  {t("rulebook.sourceName")}
+                </a>
+              ),
+            }}
+          />
+          {getLanguage() !== "en" && ` ${t("rulebook.englishOnly")}`}
         </p>
         {query.trim().length >= 2 && (
           <div className="hits">
             <div className="small muted">
-              {hits.length >= 200 ? "200+" : hits.length} match{hits.length === 1 ? "" : "es"}
+              {hits.length >= 200 ? t("rulebook.matchesMany") : tp("rulebook.matches", hits.length)}
             </div>
             <ul>
               {hits.slice(0, 60).map((h) => (
@@ -266,21 +273,21 @@ export function RulebookView() {
 
       <div className="rulebook-layout">
         {tocOpen && <div className="toc-backdrop" onClick={() => setTocOpen(false)} aria-hidden />}
-        <nav className={`rulebook-toc card ${tocOpen ? "open" : ""}`} id="rulebook-contents" aria-label="Rulebook contents">
+        <nav className={`rulebook-toc card ${tocOpen ? "open" : ""}`} id="rulebook-contents" aria-label={t("rulebook.contentsAria")}>
           {/* scroll inside the card so the card's chamfered background stays behind the list */}
           <div className="toc-scroll" ref={tocRef}>
           <ul>
-            {toc.map((t) => (
-              <li key={t.id} className={`lvl-${t.level} ${t.id === activeId ? "active" : ""}`}>
+            {toc.map((entry) => (
+              <li key={entry.id} className={`lvl-${entry.level} ${entry.id === activeId ? "active" : ""}`}>
                 <button
                   className="link"
-                  aria-current={t.id === activeId ? "location" : undefined}
+                  aria-current={entry.id === activeId ? "location" : undefined}
                   onClick={() => {
                     setTocOpen(false);
-                    jumpTo(`[id="${CSS.escape(t.id)}"]`);
+                    jumpTo(`[id="${CSS.escape(entry.id)}"]`);
                   }}
                 >
-                  {t.text}
+                  {entry.text}
                 </button>
               </li>
             ))}
@@ -295,7 +302,7 @@ export function RulebookView() {
         aria-controls="rulebook-contents"
         onClick={() => setTocOpen((o) => !o)}
       >
-        {tocOpen ? "✕ Close" : "☰ Contents"}
+        {tocOpen ? `✕ ${t("rulebook.close")}` : `☰ ${t("rulebook.contents")}`}
       </button>
     </div>
   );
